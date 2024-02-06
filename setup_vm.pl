@@ -7,6 +7,10 @@ use warnings;
 print "Updating package lists...\n";
 system("sudo apt-get update");
 
+# Upgrading the installed packages
+print "Upgrading installed packages...\n";
+system("sudo apt-get upgrade -y");
+
 # Installing the packages
 my @packages = ('joe', 'net-tools', 'openssh-server', 'nfs-common', 'curl', 'git');
 foreach my $package (@packages) {
