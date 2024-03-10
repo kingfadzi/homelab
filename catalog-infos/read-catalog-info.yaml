@@ -11,7 +11,7 @@ metadata:
     - url: http://read.butterflycluster.com
       title: Read Documents
       icon: dashboard
-    - url: http://post.butterflycluster.com
+    - url: https://post.butterflycluster.com/wp-admin/post-new.php
       title: Post a Document
       icon: dashboard
 spec:
@@ -21,3 +21,4 @@ spec:
   system: information-synthesis
   dependsOn:
     - resource:cygnus
+    - resource:wordpress-database

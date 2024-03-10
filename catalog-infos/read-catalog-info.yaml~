@@ -9,14 +9,11 @@ metadata:
     - research
   links:
     - url: http://read.butterflycluster.com
-      title: Research Documents
+      title: Read Documents
       icon: dashboard
-  annotations:
-    website/url: "http://read.butterflycluster.com"
-    wordpress.org/theme: "Zeen"
-    wordpress.org/plugins: "WordPress Migration"
-    wordpress.org/version: "latest"
-    hosting/environment: "VM on vSphere controlled via Webmin"
+    - url: https://post.butterflycluster.com/wp-admin/post-new.php
+      title: Post a Document
+      icon: dashboard
 spec:
   type: website
   lifecycle: production
