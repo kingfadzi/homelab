@@ -21,5 +21,6 @@ spec:
   type: website
   lifecycle: production
   owner: web-team
+  system: information-synthesis
   dependsOn:
     - resource:cygnus

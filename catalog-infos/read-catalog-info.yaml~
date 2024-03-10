@@ -7,6 +7,10 @@ metadata:
     - wordpress
     - documentation
     - research
+  links:
+    - url: http://read.butterflycluster.com
+      title: Research Documents
+      icon: dashboard
   annotations:
     website/url: "http://read.butterflycluster.com"
     wordpress.org/theme: "Zeen"
