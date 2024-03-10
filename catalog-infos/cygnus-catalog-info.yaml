@@ -1,0 +1,18 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: cygnus
+  description: "VM on vSphere for WordPress sites, controlled via Webmin."
+  tags:
+    - vm
+    - vsphere
+    - webmin
+    - hosting
+annotations:
+  hosting/vsphere: "VM hosting the WordPress site."
+  management/webmin: "Webmin is used for OS-level management."
+  fqdn: "cygnus.butterflycluster.com"
+  ip: "192.168.1.69"
+spec:
+  type: service
+  owner: infrastructure-team
