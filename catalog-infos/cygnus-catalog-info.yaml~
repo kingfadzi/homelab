@@ -8,6 +8,11 @@ metadata:
     - vsphere
     - webmin
     - hosting
+annotations:
+  hosting/vsphere: "VM hosting the WordPress site."
+  management/webmin: "Webmin is used for OS-level management."
+  fqdn: "cygnus.butterflycluster.com"
+  ip: "192.168.1.69"
 spec:
   type: service
   owner: infrastructure-team
