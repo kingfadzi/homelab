@@ -42,7 +42,7 @@ system("sudo growpart /dev/sda 3");
 print "Resizing filesystem on /dev/sda3...\n";
 system("sudo resize2fs /dev/sda3");
 
-# Installing Webmin
+# Installing Webmin, overwrite existing GPG key without asking for user confirmation
 print "Installing Webmin...\n";
 system("curl -fsSL https://download.webmin.com/jcameron-key.asc | sudo gpg --dearmor -o /usr/share/keyrings/webmin.gpg");
 system("echo 'deb [signed-by=/usr/share/keyrings/webmin.gpg arch=amd64] http://download.webmin.com/download/repository sarge contrib' | sudo tee /etc/apt/sources.list.d/webmin.list");
@@ -57,39 +57,34 @@ open(my $fh, '>>', '/etc/fstab') or die "Could not open file '/etc/fstab' $!";
 print $fh $fstab_entry;
 close $fh;
 
-# Network and hostname configuration
+# Prompting for hostname and IP address
 print "Please enter the new hostname: ";
 my $hostname = <STDIN>;
 chomp $hostname;
 system("echo $hostname | sudo tee /etc/hostname");
 
-# Automatically getting the connection name for ens160
+print "Enter IP address (e.g., 192.168.1.2/24): ";
+my $ip_address = <STDIN>;
+chomp $ip_address;
+
+# Hard-code network settings
+my $gateway = "192.168.1.1";
+my $dns_servers = "192.168.1.1";
+
+# Automatically configuring the connection for ens160 without activating it
 my $connection_name = `nmcli -g GENERAL.CONNECTION device show ens160`;
 chomp $connection_name;
-
 if (!$connection_name || $connection_name eq '') {
     print "No NM connection found for ens160. Attempting to create one.\n";
     system("nmcli con add type ethernet ifname ens160 con-name ens160 autoconnect yes");
     $connection_name = "ens160";
 }
+system("nmcli con mod \"$connection_name\" ipv4.addresses $ip_address ipv4.gateway $gateway ipv4.dns \"$dns_servers\" ipv4.method manual autoconnect yes");
 
-print "Enter IP address (e.g., 192.168.1.2/24): ";
-my $ip_address = <STDIN>;
-chomp $ip_address;
-
-print "Enter Gateway: ";
-my $gateway = <STDIN>;
-chomp $gateway;
-
-print "Enter DNS Servers (comma-separated, e.g., 8.8.8.8,8.8.4.4): ";
-my $dns_servers = <STDIN>;
-chomp $dns_servers;
-
-# Configuring the network with nmcli
-system("nmcli con mod \"$connection_name\" ipv4.addresses $ip_address ipv4.gateway $gateway ipv4.dns \"$dns_servers\" ipv4.method manual");
-
-# Applying the network configuration
-system("nmcli con up \"$connection_name\"");
-
-print "Network configuration applied to $connection_name (ens160).\n";
-print "Installation and configuration complete.\n";
+print "Network settings updated. A reboot is required to apply these changes.\n";
+print "Would you like to reboot now? (y/N): ";
+my $reboot = <STDIN>;
+chomp $reboot;
+if (lc($reboot) eq 'y') {
+    system("sudo reboot");
+}
