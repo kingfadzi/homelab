@@ -3,6 +3,15 @@
 use strict;
 use warnings;
 
+# Prompting for hostname and IP address
+print "Please enter the new hostname: ";
+my $hostname = <STDIN>;
+chomp $hostname;
+
+print "Enter IP address (e.g., 192.168.1.2/24): ";
+my $ip_address = <STDIN>;
+chomp $ip_address;
+
 # Check and install the Net::IP Perl module if needed
 eval {
     require Net::IP;
@@ -57,15 +66,8 @@ open(my $fh, '>>', '/etc/fstab') or die "Could not open file '/etc/fstab' $!";
 print $fh $fstab_entry;
 close $fh;
 
-# Prompting for hostname and IP address
-print "Please enter the new hostname: ";
-my $hostname = <STDIN>;
-chomp $hostname;
+# Setting the hostname
 system("echo $hostname | sudo tee /etc/hostname");
-
-print "Enter IP address (e.g., 192.168.1.2/24): ";
-my $ip_address = <STDIN>;
-chomp $ip_address;
 
 # Hard-code network settings
 my $gateway = "192.168.1.1";
