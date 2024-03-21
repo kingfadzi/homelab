@@ -18,6 +18,18 @@ foreach my $package (@packages) {
     system("sudo apt-get install -y $package");
 }
 
+# Installing additional utilities for cloud guest
+print "Installing cloud-guest-utils...\n";
+system("sudo apt install -y cloud-guest-utils");
+
+# Expanding the partition
+print "Expanding partition /dev/sda 3...\n";
+system("sudo growpart /dev/sda 3");
+
+# Resizing the filesystem
+print "Resizing filesystem on /dev/sda3...\n";
+system("sudo resize2fs /dev/sda3");
+
 # Installing Webmin
 print "Installing Webmin...\n";
 system("curl -fsSL https://download.webmin.com/jcameron-key.asc | sudo gpg --dearmor -o /usr/share/keyrings/webmin.gpg");
