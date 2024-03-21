@@ -3,6 +3,18 @@
 use strict;
 use warnings;
 
+# Check and install the Net::IP Perl module if needed
+eval {
+    require Net::IP;
+    Net::IP->import();
+};
+if ($@) {
+    print "Net::IP Perl module not found. Attempting to install it.\n";
+    system("sudo apt-get update") == 0 or die "Failed to update package lists.\n";
+    system("sudo apt-get install -y libnet-ip-perl") == 0
+        or die "Failed to install Net::IP. Please install it manually and rerun the script.\n";
+}
+
 # Updating the package list
 print "Updating package lists...\n";
 system("sudo apt-get update");
@@ -11,7 +23,7 @@ system("sudo apt-get update");
 print "Upgrading installed packages...\n";
 system("sudo apt-get upgrade -y");
 
-# Installing the packages
+# Installing specified packages
 my @packages = ('joe', 'net-tools', 'openssh-server', 'nfs-common', 'curl', 'git');
 foreach my $package (@packages) {
     print "Installing $package...\n";
@@ -40,13 +52,44 @@ system("sudo apt-get install -y webmin");
 # Mounting NFS share
 print "Mounting NFS share...\n";
 my $fstab_entry = "192.168.1.79:/Public /home/fadzi/fsbackup nfs defaults,vers=4.0 0 0\n";
-
-# Create the mount directory
 system("sudo mkdir -p /home/fadzi/fsbackup");
-
-# Append the fstab entry
 open(my $fh, '>>', '/etc/fstab') or die "Could not open file '/etc/fstab' $!";
 print $fh $fstab_entry;
 close $fh;
 
+# Network and hostname configuration
+print "Please enter the new hostname: ";
+my $hostname = <STDIN>;
+chomp $hostname;
+system("echo $hostname | sudo tee /etc/hostname");
+
+# Automatically getting the connection name for ens160
+my $connection_name = `nmcli -g GENERAL.CONNECTION device show ens160`;
+chomp $connection_name;
+
+if (!$connection_name || $connection_name eq '') {
+    print "No NM connection found for ens160. Attempting to create one.\n";
+    system("nmcli con add type ethernet ifname ens160 con-name ens160 autoconnect yes");
+    $connection_name = "ens160";
+}
+
+print "Enter IP address (e.g., 192.168.1.2/24): ";
+my $ip_address = <STDIN>;
+chomp $ip_address;
+
+print "Enter Gateway: ";
+my $gateway = <STDIN>;
+chomp $gateway;
+
+print "Enter DNS Servers (comma-separated, e.g., 8.8.8.8,8.8.4.4): ";
+my $dns_servers = <STDIN>;
+chomp $dns_servers;
+
+# Configuring the network with nmcli
+system("nmcli con mod \"$connection_name\" ipv4.addresses $ip_address ipv4.gateway $gateway ipv4.dns \"$dns_servers\" ipv4.method manual");
+
+# Applying the network configuration
+system("nmcli con up \"$connection_name\"");
+
+print "Network configuration applied to $connection_name (ens160).\n";
 print "Installation and configuration complete.\n";
