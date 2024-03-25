@@ -1,0 +1,148 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: backstage
+  description: "Backstage application"
+  annotations:
+    backstage.io/techdocs-ref: url:https://phobos.butterflycluster.com
+spec:
+  type: service
+  lifecycle: experimental
+  owner: your-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: gitlab
+  description: "GitLab for CI/CD and repository management"
+  annotations:
+    backstage.io/techdocs-ref: url:https://eros.butterflycluster.com
+spec:
+  type: service
+  lifecycle: experimental
+  owner: your-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: haproxy
+  description: "HAProxy load balancer"
+  annotations:
+    backstage.io/techdocs-ref: url:https://sedna.butterflycluster.com
+spec:
+  type: service
+  lifecycle: experimental
+  owner: your-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: grafana-lab-machines
+  description: "Grafana dashboard for lab machines monitoring"
+  annotations:
+    backstage.io/techdocs-ref: url:https://dashboard.butterflycluster.com/d/kwtyVaAmz/vmware-vsphere-overview?orgId=1
+spec:
+  type: service
+  lifecycle: experimental
+  owner: your-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: rafana-todoist
+  description: "Rafana dashboard for Todoist integration"
+  annotations:
+    backstage.io/techdocs-ref: url:https://dashboard.butterflycluster.com/d/avH3T9ggk/todo?orgId=1
+spec:
+  type: service
+  lifecycle: experimental
+  owner: your-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: wordpress-read
+  description: "Wordpress site for reading content"
+  annotations:
+    backstage.io/techdocs-ref: url:https://read.butterflycluster.com/
+spec:
+  type: service
+  lifecycle: experimental
+  owner: your-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: wordpress-post
+  description: "Wordpress site for posting content"
+  annotations:
+    backstage.io/techdocs-ref: url:https://post.butterflycluster.com/wp-admin/post-new.php
+spec:
+  type: service
+  lifecycle: experimental
+  owner: your-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: pi-hole
+  description: "Pi-hole DNS sinkhole"
+  annotations:
+    backstage.io/techdocs-ref: url:https://piscus.butterflycluster.com/admin
+spec:
+  type: service
+  lifecycle: experimental
+  owner: your-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: wiredguard
+  description: "WiredGuard VPN service"
+  annotations:
+    backstage.io/techdocs-ref: url:shaula.butterflycluster.com
+spec:
+  type: service
+  lifecycle: experimental
+  owner: your-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: firefly-iii
+  description: "Firefly III personal finance manager"
+  annotations:
+    backstage.io/techdocs-ref: url:sargas.butterflycluster.com
+spec:
+  type: service
+  lifecycle: experimental
+  owner: your-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: firefly-iii-importer
+  description: "Importer for Firefly III"
+  annotations:
+    backstage.io/techdocs-ref: url:sargas-i.butterflycluster.com
+spec:
+  type: service
+  lifecycle: experimental
+  owner: your-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: phpmyadmin
+  description: "phpMyAdmin for database management"
+  annotations:
+    backstage.io/techdocs-ref: url:nunki.butterflycluster.com
+spec:
+  type: service
+  lifecycle: experimental
+  owner: your-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: next
