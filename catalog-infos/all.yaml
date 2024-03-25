@@ -9,3 +9,4 @@ spec:
     - ./cygnus-webmin-catalog-info.yaml
     - ./read-catalog-info.yaml
     - ./read-db-catalog-info.yaml
+    - ./components.yaml
