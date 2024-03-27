@@ -1,5 +1,3 @@
-Certainly! Here’s a comprehensive step-by-step guide to securing your OpenShift cluster's web console and API endpoints using Let's Encrypt certificates with HAProxy, including installation and configuration from scratch, tailored for a CentOS environment and handling the "No Private Key found" error:
-
 ### Step 1: Install Certbot on CentOS
 
 1. **Install EPEL Repository** (if not already installed):
@@ -75,4 +73,3 @@ echo "systemctl reload haproxy" | sudo tee /etc/letsencrypt/renewal-hooks/post/r
 sudo chmod +x /etc/letsencrypt/renewal-hooks/post/reload-haproxy.sh
 ```
 
-This guide walks you through installing Certbot, obtaining certificates, preparing them for HAProxy, configuring SSL termination, verifying the setup, and automating certificate renewals, ensuring your OpenShift cluster is securely accessible.
