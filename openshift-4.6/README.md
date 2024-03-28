@@ -56,7 +56,7 @@ sshKey: "" # Removed for security
 
 ## Step 2: Configure HAProxy
 
-Use this HAProxy configuration, replacing `TEMP_BOOTSTRAP_IP` with your bootstrap node's IP address:
+Use this HAProxy configuration:
 
 ```haproxy
 #---------------------------------------------------------------------
