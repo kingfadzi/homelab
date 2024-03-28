@@ -64,5 +64,8 @@ EOF
 oc apply -f gitlab-runner.yml
 ```
 
-
 Ensure to replace the placeholder `REPLACE_ME` with your actual project's runner secret.
+
+## Access Management for GitLab Runners
+
+[AccessManagementREADME.md](./AccessManagementREADME.md).
