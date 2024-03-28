@@ -144,3 +144,6 @@ After installation:
 ---
 
 **Note:** Replace `<your_pull_secret>` and `<your_ssh_key>` with your actual pull secret and SSH key. Adjust IP addresses in the HAProxy configuration to match your environment's specifics.
+
+## Step 5: Add custom-tls to console URL
+[Custom TLS Configuration](./custom-tls.md)

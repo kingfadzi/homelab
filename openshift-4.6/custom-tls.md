@@ -27,41 +27,7 @@
    ```
    Ensure the directory `/etc/haproxy/certs/` exists, or adjust the path according to your setup.
 
-### Step 4: Configure HAProxy for SSL Termination
-
-1. **Edit HAProxy Configuration** (`/etc/haproxy/haproxy.cfg`):
-   Adjust or add a frontend section in your HAProxy configuration to point to the combined certificate file for SSL termination:
-   ```haproxy
-   frontend https_frontend
-       bind *:443 ssl crt /etc/haproxy/certs/apps.ocp4.butterflycluster.com.pem
-       mode http
-       option httplog
-       default_backend openshift_backend
-   ```
-   Here, `openshift_backend` is your backend configuration pointing to your OpenShift cluster. Ensure backend servers are defined correctly to forward traffic to your OpenShift console and API server.
-
-2. **Reload HAProxy**:
-   Apply your configuration changes:
-   ```bash
-   sudo systemctl reload haproxy
-   ```
-
-### Step 5: Verify the Configuration
-
-1. **Check for Configuration Errors**:
-   Ensure there are no syntax errors in your HAProxy configuration:
-   ```bash
-   haproxy -c -V -f /etc/haproxy/haproxy.cfg
-   ```
-2. **Test the SSL Termination**:
-   Use `curl` to test the SSL setup:
-   ```bash
-   curl -v https://api.ocp4.butterflycluster.com
-   curl -v https://any.apps.ocp4.butterflycluster.com
-   ```
-   The output should show a successful SSL handshake using your Let's Encrypt certificate.
-
-### Step 6: Automate Renewals
+### Step 4: Automate Renewals
 
 Let's Encrypt certificates are valid for 90 days. Set up automatic renewal:
 ```bash
@@ -72,7 +38,7 @@ For a fully automated renewal process, including reloading HAProxy to apply rene
 echo "systemctl reload haproxy" | sudo tee /etc/letsencrypt/renewal-hooks/post/reload-haproxy.sh
 sudo chmod +x /etc/letsencrypt/renewal-hooks/post/reload-haproxy.sh
 ```
-### Step 7: Add the custom certificate for the console URL 
+### Step 5: Add the custom certificate for the console URL
 1. **Navigate to the Certificate Directory**
     ```bash
     cd /etc/letsencrypt/live/apps.ocp4.butterflycluster.com
