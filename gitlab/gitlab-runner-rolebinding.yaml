@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-runner-viewer-binding
+  namespace: openshift-operators
+subjects:
+  - kind: User
+    name: "d@bxxx.net" # Replace with the actual user name or email
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: gitlab-runner-viewer
+  apiGroup: rbac.authorization.k8s.io
