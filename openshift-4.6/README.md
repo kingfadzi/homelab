@@ -4,7 +4,7 @@
 
 # OpenShift IPI on vSphere with HAProxy
 
-Quickstart guide to setting up OpenShift in a vSphere environment using HAProxy for load balancing.
+Quickstart guide to setting up OpenShift 4.6 in a vSphere environment using HAProxy for load balancing.
 
 ## Step 1: Prepare OpenShift Install Config
 

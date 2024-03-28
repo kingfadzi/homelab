@@ -72,4 +72,28 @@ For a fully automated renewal process, including reloading HAProxy to apply rene
 echo "systemctl reload haproxy" | sudo tee /etc/letsencrypt/renewal-hooks/post/reload-haproxy.sh
 sudo chmod +x /etc/letsencrypt/renewal-hooks/post/reload-haproxy.sh
 ```
+### Step 7: Add the custom certificate for the console URL 
+1. **Navigate to the Certificate Directory**
+    ```bash
+    cd /etc/letsencrypt/live/apps.ocp4.butterflycluster.com
+    ```
 
+2. **Create a Secret Using the Private Key and Certificate Files**
+    ```bash
+    oc create secret tls console-tls --key=privkey.pem --cert=cert.pem -n openshift-config
+    ```
+   The above command creates a secret named "console-tls" in the "openshift-config" namespace.
+
+3. **Edit the Console Operator Configuration**
+    ```bash
+    oc edit consoles.operator.openshift.io cluster
+    ```
+   In the editor, add the following stanza to the resource configuration:
+
+    ```yaml
+    spec:
+      route:
+        secret:
+          name: console-tls
+    ```
+   Save and exit the editor. The Console Operator updates the console deployment to use the newly specified certificate for the console URL.
