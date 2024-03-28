@@ -92,6 +92,7 @@ backend openshift_api_backend
     balance roundrobin
     # Direct API server traffic to the bootstrap VM while it holds the API VIP
     server bootstrap 192.168.1.21:6443 check
+    #server api-vip 192.168.1.21:6443 check  #<= enable post installation 
 
 #---------------------------------------------------------------------
 # Frontend for OpenShift Ingress - HTTP
