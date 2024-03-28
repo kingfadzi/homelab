@@ -1,5 +1,3 @@
-Certainly, here's a concise README that includes the exact `install-config.yaml` you provided and the HAProxy configuration for an OpenShift IPI installation on vSphere. This guide is designed for easy copy-paste actions with minimal required customizations.
-
 ### README.md
 
 ---
