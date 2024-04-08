@@ -62,23 +62,6 @@ system("echo 'deb [signed-by=/usr/share/keyrings/webmin.gpg arch=amd64] http://d
 system("sudo apt-get update");
 system("sudo apt-get install -y webmin");
 
-# Download certificates and key
-print "Download certificates and key...\n";
-system("sudo curl -o /etc/ssl/butterflycluster_com.crt.pem https://nas.butterflycluster.com/share.cgi?ssid=079Sv2d");
-system("sudo curl -o /etc/ssl/butterflycluster_com.key https://nas.butterflycluster.com/share.cgi?ssid=0I7az5d");
-
-# Download miniserv.conf from GitHub
-print "Downloading miniserv.conf from github...\n";
-system("sudo curl -o /etc/webmin/miniserv.conf https://raw.githubusercontent.com/kingfadzi/homelab/main/webmin/etc/webmin/miniserv.conf");
-
-# Mounting NFS share
-print "Mounting NFS share...\n";
-my $fstab_entry = "192.168.1.79:/Public /home/fadzi/fsbackup nfs defaults,vers=4.0 0 0\n";
-system("sudo mkdir -p /home/fadzi/fsbackup");
-open(my $fh, '>>', '/etc/fstab') or die "Could not open file '/etc/fstab' $!";
-print $fh $fstab_entry;
-close $fh;
-
 # Setting the hostname
 system("echo $hostname | sudo tee /etc/hostname");
 
