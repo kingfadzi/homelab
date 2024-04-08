@@ -69,7 +69,7 @@ system("sudo curl -o /etc/ssl/butterflycluster_com.key https://nas.butterflyclus
 
 # Download miniserv.conf from GitHub
 print "Downloading miniserv.conf from github...\n";
-system("sudo curl -o n/etc/webmin/miniserv.conf https://raw.githubusercontent.com/kingfadzi/homelab/main/webmin/etc/webmin/miniserv.conf");
+system("sudo curl -o /etc/webmin/miniserv.conf https://raw.githubusercontent.com/kingfadzi/homelab/main/webmin/etc/webmin/miniserv.conf");
 
 # Mounting NFS share
 print "Mounting NFS share...\n";
