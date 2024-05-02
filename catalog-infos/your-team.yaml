@@ -2,6 +2,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Group
 metadata:
   name: your-team
+  namespace: default
   description: "The team responsible for managing services and components in Backstage"
 spec:
   type: team
