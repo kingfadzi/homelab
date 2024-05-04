@@ -10,5 +10,5 @@ spec:
     - ./read-catalog-info.yaml
     - ./read-db-catalog-info.yaml
     - ./components.yaml
-    - ./infrastructure-team.yaml
+
     
