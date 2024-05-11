@@ -23,7 +23,7 @@ metadata:
   name: cluster-deployment-manager
 rules:
 - apiGroups: ["batch"]
-  resources: ["cronjobs"]
+  resources: ["cronjobs", "jobs"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: [""]
   resources: ["namespaces", "services", "configmaps", "limitranges", "resourcequotas"]
@@ -80,7 +80,7 @@ metadata:
   name: cluster-deployment-manager
 rules:
 - apiGroups: ["batch"]
-  resources: ["cronjobs"]
+  resources: ["cronjobs", "jobs"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: [""]
   resources: ["namespaces", "services", "configmaps", "limitranges", "resourcequotas"]
