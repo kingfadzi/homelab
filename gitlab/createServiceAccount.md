@@ -17,14 +17,18 @@ This YAML defines a `ClusterRole` that allows actions on `projects` within the `
 
 ```yaml
 ---
-kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
 metadata:
-  name: project-management
+  name: cluster-deployment-manager
 rules:
-- apiGroups: ["project.openshift.io"]
-  resources: ["projects"]
-  verbs: ["get", "create"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "create", "delete", "update"]
+
 ```
 
 ### Step 3: Create ClusterRoleBinding
@@ -32,18 +36,19 @@ This YAML binds the `gitlab-sa` Service Account to the `project-management` Clus
 
 ```yaml
 ---
-kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
 metadata:
-  name: project-management-binding
+  name: cluster-deployment-manager-binding
 subjects:
 - kind: ServiceAccount
   name: gitlab-sa
   namespace: backstage-system
 roleRef:
   kind: ClusterRole
-  name: project-management
+  name: cluster-deployment-manager
   apiGroup: rbac.authorization.k8s.io
+
 ```
 
 ### Full Setup in One YAML File
@@ -57,28 +62,32 @@ metadata:
   namespace: backstage-system
 
 ---
-kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
 metadata:
-  name: project-management
+  name: cluster-deployment-manager
 rules:
-- apiGroups: ["project.openshift.io"]
-  resources: ["projects"]
-  verbs: ["get", "create"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "create", "delete", "update"]
 
 ---
-kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
 metadata:
-  name: project-management-binding
+  name: cluster-deployment-manager-binding
 subjects:
 - kind: ServiceAccount
   name: gitlab-sa
   namespace: backstage-system
 roleRef:
   kind: ClusterRole
-  name: project-management
+  name: cluster-deployment-manager
   apiGroup: rbac.authorization.k8s.io
+
 ```
 
 ### Instructions to Apply the YAML
