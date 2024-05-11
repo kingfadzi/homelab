@@ -22,6 +22,9 @@ kind: ClusterRole
 metadata:
   name: cluster-deployment-manager
 rules:
+- apiGroups: ["batch"]
+  resources: ["cronjobs"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: [""]
   resources: ["namespaces", "services", "configmaps", "limitranges", "resourcequotas"]
   verbs: ["get", "list", "create", "delete", "update"]
@@ -76,6 +79,9 @@ kind: ClusterRole
 metadata:
   name: cluster-deployment-manager
 rules:
+- apiGroups: ["batch"]
+  resources: ["cronjobs"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: [""]
   resources: ["namespaces", "services", "configmaps", "limitranges", "resourcequotas"]
   verbs: ["get", "list", "create", "delete", "update"]
