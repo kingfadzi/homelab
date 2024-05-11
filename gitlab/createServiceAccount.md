@@ -4,8 +4,8 @@ This is a precautionary step to ensure that there are no conflicts with existing
 **Delete Commands:**
 ```bash
 kubectl delete sa gitlab-sa -n backstage-system
-kubectl delete role project-management -n master
-kubectl delete rolebinding project-management-binding -n master
+kubectl delete role cluster-deployment-manager
+kubectl delete rolebinding cluster-deployment-manager-binding
 ```
 
 If you need the permissions specified in the `project-management` Role to be cluster-wide, you should convert the `Role` to a `ClusterRole` and the `RoleBinding` to a `ClusterRoleBinding`. This change will extend the permissions across all namespaces in the cluster, rather than being limited to a specific namespace.
