@@ -23,21 +23,23 @@ metadata:
   name: cluster-deployment-manager
 rules:
 - apiGroups: [""]
-  resources: ["namespaces", "services"]
+  resources: ["namespaces", "services", "configmaps", "limitranges", "resourcequotas"]
   verbs: ["get", "list", "create", "delete", "update"]
 - apiGroups: ["apps", "extensions"]
-  resources: ["deployments", "replicasets"]
+  resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: ["batch"]
   resources: ["jobs", "cronjobs"]
   verbs: ["get", "list", "create", "delete", "update"]
+- apiGroups: ["autoscaling"]
+  resources: ["horizontalpodautoscalers"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: [""]
   resources: ["pods"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: ["networking.k8s.io"]
   resources: ["ingresses"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-
 
 ```
 
@@ -78,14 +80,17 @@ metadata:
   name: cluster-deployment-manager
 rules:
 - apiGroups: [""]
-  resources: ["namespaces", "services"]
+  resources: ["namespaces", "services", "configmaps", "limitranges", "resourcequotas"]
   verbs: ["get", "list", "create", "delete", "update"]
 - apiGroups: ["apps", "extensions"]
-  resources: ["deployments", "replicasets"]
+  resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: ["batch"]
   resources: ["jobs", "cronjobs"]
   verbs: ["get", "list", "create", "delete", "update"]
+- apiGroups: ["autoscaling"]
+  resources: ["horizontalpodautoscalers"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: [""]
   resources: ["pods"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
