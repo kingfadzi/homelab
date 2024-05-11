@@ -73,3 +73,56 @@ roleRef:
 kubectl apply -f role-binding.yaml
 ```
 
+For a comprehensive setup using a single YAML file for the lazty
+
+### Combined YAML Content (`full-setup.yaml`)
+```yaml
+---
+# Step 0: Delete Existing Resources (Provided for reference, use separate commands to delete)
+# kubectl delete sa gitlab-sa -n backstage-system
+# kubectl delete role project-management -n master
+# kubectl delete rolebinding project-management-binding -n master
+
+---
+# Step 1: Create Service Account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gitlab-sa
+  namespace: backstage-system
+
+---
+# Step 2: Create Role
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: project-management
+  namespace: master
+rules:
+- apiGroups: ["project.openshift.io"]
+  resources: ["projects"]
+  verbs: ["get", "create"]
+
+---
+# Step 3: Create RoleBinding
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: project-management-binding
+  namespace: master
+subjects:
+- kind: ServiceAccount
+  name: gitlab-sa
+  namespace: backstage-system
+roleRef:
+  kind: Role
+  name: project-management
+  apiGroup: rbac.authorization.k8s.io
+```
+
+### Apply the Combined YAML
+This single command applies all the configurations defined in the YAML file:
+```bash
+kubectl apply -f full-setup.yaml
+```
+
