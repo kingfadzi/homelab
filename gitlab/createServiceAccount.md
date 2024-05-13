@@ -40,6 +40,9 @@ rules:
 - apiGroups: ["networking.k8s.io"]
   resources: ["ingresses"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["pods", "pods/log"]  # Added "pods/log" here
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 
 ```
 
@@ -96,6 +99,9 @@ rules:
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: ["networking.k8s.io"]
   resources: ["ingresses"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["pods", "pods/log"]  # Added "pods/log" here
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 
 ---
