@@ -26,3 +26,8 @@ variable "vm_ipv4_gateway" {
   type        = string
   default     = ""
 }
+variable "root_password" {
+  description = "Root password for the VM"
+  type        = string
+  sensitive   = true
+}
