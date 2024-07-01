@@ -29,7 +29,7 @@ data "vsphere_network" "network" {
 }
 
 data "vsphere_compute_cluster" "cluster" {
-  name          = cosmo-core"
+  name          = "cosmo-core"
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
