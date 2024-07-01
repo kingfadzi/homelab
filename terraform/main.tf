@@ -29,7 +29,7 @@ data "vsphere_network" "network" {
 }
 
 data "vsphere_compute_cluster" "cluster" {
-  name          = "stellar-nexus"
+  name          = cosmo-core"
   datacenter_id = data.vsphere_datacenter.dc.id
 }
 
@@ -74,4 +74,22 @@ resource "vsphere_virtual_machine" "vm" {
       ipv4_gateway = var.vm_ipv4_gateway
     }
   }
+  provisioner "remote-exec" {
+    inline = [
+      "echo 'network:' > /etc/netplan/01-netcfg.yaml",
+      "echo '  version: 2' >> /etc/netplan/01-netcfg.yaml",
+      "echo '  ethernets:' >> /etc/netplan/01-netcfg.yaml",
+      "echo '    ens192:' >> /etc/netplan/01-netcfg.yaml",
+      "echo '      dhcp4: true' >> /etc/netplan/01-netcfg.yaml",
+      "netplan apply"
+    ]
+
+    connection {
+      type     = "ssh"
+      user     = "root"
+      password = var.root_password
+      host     = self.default_ip_address
+    }
+  }
+
 }
