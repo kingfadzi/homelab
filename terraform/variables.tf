@@ -1,33 +1,23 @@
 variable "vm_hostname" {
   description = "The hostname of the VM"
-  type        = string
-}
-
-variable "vm_domain" {
-  description = "The domain of the VM"
-  type        = string
-  default     = "localdomain"
 }
 
 variable "vm_ipv4_address" {
-  description = "Static IPv4 address for the VM"
-  type        = string
-  default     = ""
+  description = "The IPv4 address to assign to the VM"
 }
 
-variable "vm_ipv4_netmask" {
-  description = "Netmask for the VM's static IPv4 address"
-  type        = number
-  default     = 24
+variable "num_cpus" {
+  description = "Number of CPUs"
 }
 
-variable "vm_ipv4_gateway" {
-  description = "Default gateway for the VM"
-  type        = string
-  default     = ""
+variable "memory" {
+  description = "Amount of memory in MB"
 }
+
+variable "disk_size" {
+  description = "Disk size in GB"
+}
+
 variable "root_password" {
-  description = "Root password for the VM"
-  type        = string
-  sensitive   = true
+  description = "Root password for SSH"
 }
