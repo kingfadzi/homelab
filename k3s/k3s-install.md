@@ -78,5 +78,20 @@ kubectl get node -o wide
 Set up the KUBECONFIG environment variable to use the K3s cluster configuration.
 
 ```sh
-export KUBECONFIG=/Users/fadzi/kubeconfig
+export KUBECONFIG=/Users/fadzi/tools/charon/kubeconfig
+kubectl config use-context default
+kubectl get node -o wide
+```
+### 8. Set workspace:
+
+Check the current context:
+
+```sh
+kubectl config current-context
+```
+
+Set the default namespace:
+
+```sh
+kubectl config set-context --current --namespace=dev
 ```
