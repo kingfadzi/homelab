@@ -44,7 +44,7 @@ resource "vsphere_virtual_machine" "vm" {
   datastore_id     = data.vsphere_datastore.datastore.id
 
   num_cpus = var.num_cpus
-  memory   = var.memory
+  memory   = var.memory * 1024  # Convert GB to MB
   guest_id = data.vsphere_virtual_machine.template.guest_id
 
   network_interface {
@@ -60,39 +60,20 @@ resource "vsphere_virtual_machine" "vm" {
 
   clone {
     template_uuid = data.vsphere_virtual_machine.template.id
-
-    customize {
-      linux_options {
-        host_name = var.vm_hostname
-        domain    = "example.com"
-      }
-
-      network_interface {
-        ipv4_address = var.vm_ipv4_address
-        ipv4_netmask = "24"
-      }
-      ipv4_gateway = "192.168.1.1"
-    }
   }
 
-  provisioner "remote-exec" {
-    inline = [
-      "echo 'network:' > /etc/netplan/01-netcfg.yaml",
-      "echo '  version: 2' >> /etc/netplan/01-netcfg.yaml",
-      "echo '  ethernets:' >> /etc/netplan/01-netcfg.yaml",
-      "echo '    ens192:' >> /etc/netplan/01-netcfg.yaml",
-      "echo '      addresses: [\"${var.vm_ipv4_address}/24\"]' >> /etc/netplan/01-netcfg.yaml",
-      "echo '      gateway4: 192.168.1.1' >> /etc/netplan/01-netcfg.yaml",
-      "echo '      nameservers:' >> /etc/netplan/01-netcfg.yaml",
-      "echo '        addresses: [\"192.168.1.1\", \"8.8.8.8\"]' >> /etc/netplan/01-netcfg.yaml",
-      "netplan apply"
-    ]
-
-    connection {
-      type     = "ssh"
-      user     = "root"
-      password = var.root_password
-      host     = self.default_ip_address
-    }
+  extra_config = {
+    "guestinfo.metadata"          = base64encode(templatefile("${path.module}/metadata.tpl", {
+      vm_hostname     = var.vm_hostname,
+      vm_ipv4_address = var.vm_ipv4_address
+    }))
+    "guestinfo.metadata.encoding" = "base64"
+    "guestinfo.userdata"          = base64encode(templatefile("${path.module}/userdata.tpl", {
+      vm_hostname   = var.vm_hostname,
+      root_password = var.root_password
+    }))
+    "guestinfo.userdata.encoding" = "base64"
   }
+
+
 }

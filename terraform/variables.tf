@@ -11,7 +11,7 @@ variable "num_cpus" {
 }
 
 variable "memory" {
-  description = "Amount of memory in MB"
+  description = "Amount of memory in GB"
 }
 
 variable "disk_size" {
