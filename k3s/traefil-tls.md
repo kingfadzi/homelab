@@ -82,7 +82,7 @@ Prepare your certificate and key files:
 
 Create the secret:
 ```sh
-kubectl create secret tls tls-secret --namespace kube-system --cert butterflycluster_com.crt --key butterflycluster_com.key
+kubectl create secret tls tls-secret --namespace kube-system --cert butterflycluster_com.crt.pem --key butterflycluster_com.key
 ```
 
 ### 4. Create a TLSStore
