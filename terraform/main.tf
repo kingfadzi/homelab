@@ -80,7 +80,10 @@ resource "vsphere_virtual_machine" "vm" {
       "echo '  version: 2' >> /etc/netplan/01-netcfg.yaml",
       "echo '  ethernets:' >> /etc/netplan/01-netcfg.yaml",
       "echo '    ens192:' >> /etc/netplan/01-netcfg.yaml",
-      "echo '      dhcp4: true' >> /etc/netplan/01-netcfg.yaml",
+      "echo '      addresses: [\"${var.vm_ipv4_address}/${var.vm_ipv4_netmask}\"]' >> /etc/netplan/01-netcfg.yaml",
+      "echo '      gateway4: ${var.vm_ipv4_gateway}' >> /etc/netplan/01-netcfg.yaml",
+      "echo '      nameservers:' >> /etc/netplan/01-netcfg.yaml",
+      "echo '        addresses: [\"192.168.1.1\", \"8.8.8.8\"]' >> /etc/netplan/01-netcfg.yaml",
       "netplan apply"
     ]
 
@@ -91,5 +94,6 @@ resource "vsphere_virtual_machine" "vm" {
       host     = self.default_ip_address
     }
   }
+}
 
 }
