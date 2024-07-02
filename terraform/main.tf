@@ -39,12 +39,12 @@ data "vsphere_virtual_machine" "template" {
 }
 
 resource "vsphere_virtual_machine" "vm" {
-  name             = var.vm_hostname  # Use the hostname as the VM name
+  name             = var.vm_hostname
   resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
   datastore_id     = data.vsphere_datastore.datastore.id
 
-  num_cpus = 2
-  memory   = 2048
+  num_cpus = var.num_cpus
+  memory   = var.memory
   guest_id = data.vsphere_virtual_machine.template.guest_id
 
   network_interface {
@@ -53,7 +53,7 @@ resource "vsphere_virtual_machine" "vm" {
 
   disk {
     label            = "disk0"
-    size             = 80
+    size             = var.disk_size
     eagerly_scrub    = false
     thin_provisioned = true
   }
@@ -64,24 +64,25 @@ resource "vsphere_virtual_machine" "vm" {
     customize {
       linux_options {
         host_name = var.vm_hostname
-        domain    = var.vm_domain
+        domain    = "example.com"
       }
 
       network_interface {
         ipv4_address = var.vm_ipv4_address
-        ipv4_netmask = var.vm_ipv4_netmask
+        ipv4_netmask = "24"
       }
-      ipv4_gateway = var.vm_ipv4_gateway
+      ipv4_gateway = "192.168.1.1"
     }
   }
+
   provisioner "remote-exec" {
     inline = [
       "echo 'network:' > /etc/netplan/01-netcfg.yaml",
       "echo '  version: 2' >> /etc/netplan/01-netcfg.yaml",
       "echo '  ethernets:' >> /etc/netplan/01-netcfg.yaml",
       "echo '    ens192:' >> /etc/netplan/01-netcfg.yaml",
-      "echo '      addresses: [\"${var.vm_ipv4_address}/${var.vm_ipv4_netmask}\"]' >> /etc/netplan/01-netcfg.yaml",
-      "echo '      gateway4: ${var.vm_ipv4_gateway}' >> /etc/netplan/01-netcfg.yaml",
+      "echo '      addresses: [\"${var.vm_ipv4_address}/24\"]' >> /etc/netplan/01-netcfg.yaml",
+      "echo '      gateway4: 192.168.1.1' >> /etc/netplan/01-netcfg.yaml",
       "echo '      nameservers:' >> /etc/netplan/01-netcfg.yaml",
       "echo '        addresses: [\"192.168.1.1\", \"8.8.8.8\"]' >> /etc/netplan/01-netcfg.yaml",
       "netplan apply"
@@ -94,6 +95,4 @@ resource "vsphere_virtual_machine" "vm" {
       host     = self.default_ip_address
     }
   }
-}
-
 }
