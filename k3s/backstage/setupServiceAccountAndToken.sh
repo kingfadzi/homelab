@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Variables
-NAMESPACE="backstage-xyz"
+NAMESPACE="backstage-staging"
 SERVICE_ACCOUNT_NAME="new-backstage-sa"
 KUBECONFIG_FILE="kubeconfig-new-backstage-sa.yaml"
 TOKEN_FILE="token-file"
-SERVER_URL="https://192.168.1.185:6443"
+SERVER_URL="https://192.168.1.189:6443"
 
 # Step 1: Ensure the Namespace Exists
 echo "Ensuring the namespace exists..."
