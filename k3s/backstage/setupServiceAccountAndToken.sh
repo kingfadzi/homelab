@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Variables
-NAMESPACE="backstage-staging"
+NAMESPACE="backstage-xyz"
 SERVICE_ACCOUNT_NAME="new-backstage-sa"
 KUBECONFIG_FILE="kubeconfig-new-backstage-sa.yaml"
 TOKEN_FILE="token-file"
