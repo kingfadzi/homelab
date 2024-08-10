@@ -20,15 +20,15 @@ This guide provides concise instructions on how to update DNS settings using Net
 2. **Set the DNS Server**
    Replace `YourConnectionName` with the name of your network connection (e.g., 'Wired connection 1').
    ```bash
-   nmcli con mod "YourConnectionName" ipv4.dns "192.168.1.253"
-   nmcli con mod "YourConnectionName" ipv4.ignore-auto-dns yes
-   nmcli con mod "YourConnectionName" ipv4.method auto
+   nmcli con mod "Wired connection 1" ipv4.dns "192.168.1.253"
+   nmcli con mod "Wired connection 1" ipv4.ignore-auto-dns yes
+   nmcli con mod "Wired connection 1" ipv4.method auto
    ```
 
 3. **Reactivate the Connection**
    ```bash
-   nmcli con down "YourConnectionName"
-   nmcli con up "YourConnectionName"
+   nmcli con down "Wired connection 1"
+   nmcli con up "Wired connection 1"
    ```
 
 4. **Verify the Changes**
