@@ -17,15 +17,16 @@ LABEL maintainer="Your Name <your.email@example.com>"
   dnf install -y gcc automake autoconf gcc-c++ openssl-devel bzip2-devel libffi-devel zlib-devel wget && \
   # Install Python 3.12 from a third-party repository
   dnf install -y python3.12 && \
+  # Manually create PostgreSQL data directory and initialize the database
+  mkdir -p /var/lib/pgsql/13/data && \
+  chown -R postgres:postgres /var/lib/pgsql/13/data && \
+  su - postgres -c "/usr/pgsql-13/bin/initdb -D /var/lib/pgsql/13/data" && \
   # Clean up
   dnf clean all && \
   rm -rf /var/cache/yum
-
-  # Initialize PostgreSQL Database
-  RUN /usr/pgsql-13/bin/postgresql-13-setup initdb
 
   # Expose PostgreSQL port
   EXPOSE 5432
 
   # Set the default command to start PostgreSQL
-  CMD ["postgres", "-D", "/var/lib/pgsql/13/data"]
+  CMD ["su", "-", "postgres", "-c", "/usr/pgsql-13/bin/postgres -D /var/lib/pgsql/13/data"]
