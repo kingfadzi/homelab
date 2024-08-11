@@ -7,9 +7,7 @@ LABEL maintainer="Your Name <your.email@example.com>"
   RUN yum install -y \
   # Install PostgreSQL repository
   https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm && \
-  # Disable the default PostgreSQL module to avoid conflicts
-  dnf -qy module disable postgresql && \
-  # Install PostgreSQL 13
+  # Install PostgreSQL 13 directly without disabling modules
   dnf install -y postgresql13-server postgresql13 && \
   # Install Node.js 18 and Yarn
   dnf module enable -y nodejs:18 && \
