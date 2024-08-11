@@ -18,7 +18,9 @@ LABEL maintainer="Your Name <your.email@example.com>"
   # Install Python 3.12 from a third-party repository
   dnf install -y python3.12 && \
   # Install networking tools and utilities
-  dnf install -y telnet bind-utils wget curl iproute iputils net-tools && \
+  dnf install -y bind-utils wget curl iproute iputils net-tools && \
+  # Install telnet from an additional repository if available
+  yum install -y telnet && \
   # Manually create PostgreSQL data directory and initialize the database
   mkdir -p /var/lib/pgsql/13/data && \
   chown -R postgres:postgres /var/lib/pgsql/13/data && \
