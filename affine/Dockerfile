@@ -17,6 +17,8 @@ LABEL maintainer="Your Name <your.email@example.com>"
   dnf install -y gcc automake autoconf gcc-c++ openssl-devel bzip2-devel libffi-devel zlib-devel wget && \
   # Install Python 3.12 from a third-party repository
   dnf install -y python3.12 && \
+  # Install networking tools and utilities
+  dnf install -y telnet bind-utils wget curl iproute iputils net-tools && \
   # Manually create PostgreSQL data directory and initialize the database
   mkdir -p /var/lib/pgsql/13/data && \
   chown -R postgres:postgres /var/lib/pgsql/13/data && \
