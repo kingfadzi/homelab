@@ -13,10 +13,9 @@ LABEL maintainer="Your Name <your.email@example.com>"
   dnf module enable -y nodejs:18 && \
   dnf install -y nodejs && \
   npm install -g yarn && \
-  # Install development tools
-  dnf groupinstall -y "Development Tools" && \
+  # Install essential development tools manually (as the group wasn't found)
+  dnf install -y gcc make automake autoconf gcc-c++ openssl-devel bzip2-devel libffi-devel zlib-devel wget && \
   # Install Python 3.12 from source
-  dnf install -y gcc openssl-devel bzip2-devel libffi-devel zlib-devel wget make && \
   wget https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tgz && \
   tar xzf Python-3.12.0.tgz && \
   cd Python-3.12.0 && \
