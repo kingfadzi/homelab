@@ -14,15 +14,9 @@ LABEL maintainer="Your Name <your.email@example.com>"
   dnf install -y nodejs && \
   npm install -g yarn && \
   # Install essential development tools manually (as the group wasn't found)
-  dnf install -y gcc make automake autoconf gcc-c++ openssl-devel bzip2-devel libffi-devel zlib-devel wget && \
-  # Install Python 3.12 from source
-  wget https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tgz && \
-  tar xzf Python-3.12.0.tgz && \
-  cd Python-3.12.0 && \
-  ./configure --enable-optimizations && \
-  make altinstall && \
-  cd .. && \
-  rm -rf Python-3.12.0 Python-3.12.0.tgz && \
+  dnf install -y gcc automake autoconf gcc-c++ openssl-devel bzip2-devel libffi-devel zlib-devel wget && \
+  # Install Python 3.12 from a third-party repository
+  dnf install -y python3.12 && \
   # Clean up
   dnf clean all && \
   rm -rf /var/cache/yum
