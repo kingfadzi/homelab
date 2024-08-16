@@ -1,34 +1,41 @@
 # Use the official Red Hat Universal Base Image (UBI) 8 as the base
 FROM registry.access.redhat.com/ubi8/ubi:latest
 
-LABEL maintainer="Your Name <your.email@example.com>"
+# Install Git, Node.js 18, Yarn, and Rust
+RUN yum install -y git curl && \
+    curl -fsSL https://rpm.nodesource.com/setup_18.x | bash - && \
+    yum install -y nodejs && \
+    npm install -g yarn && \
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+    source $HOME/.cargo/env && \
+    rustup update && \
+    rustup default stable && \
+    yum clean all && \
+    rm -rf /var/cache/yum nodesource_setup.sh
 
-  # Install required packages and dependencies
-  RUN yum install -y \
-  # Install PostgreSQL repository
-  https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm && \
-  # Install PostgreSQL 13 directly without disabling modules
-  dnf install -y postgresql13-server postgresql13 && \
-  # Install Node.js 18 and Yarn
-  dnf module enable -y nodejs:18 && \
-  dnf install -y nodejs && \
-  npm install -g yarn && \
-  # Install essential development tools manually (as the group wasn't found)
-  dnf install -y gcc automake autoconf gcc-c++ openssl-devel bzip2-devel libffi-devel zlib-devel wget && \
-  # Install Python 3.12 from a third-party repository
-  dnf install -y python3.12 && \
-  # Install networking tools and utilities (without telnet)
-  dnf install -y bind-utils wget curl iproute iputils net-tools && \
-  # Manually create PostgreSQL data directory and initialize the database
-  mkdir -p /var/lib/pgsql/13/data && \
-  chown -R postgres:postgres /var/lib/pgsql/13/data && \
-  su - postgres -c "/usr/pgsql-13/bin/initdb -D /var/lib/pgsql/13/data" && \
-  # Clean up
-  dnf clean all && \
-  rm -rf /var/cache/yum
+# Clone the AFFiNE repository and checkout the specific tag
+RUN git clone https://github.com/toeverything/AFFiNE.git --branch stable && \
+    cd AFFiNE && \
+    git checkout tags/v0.17.0-canary.3
 
-  # Expose PostgreSQL port
-  EXPOSE 5432
+# List contents of the AFFiNE directory to confirm successful cloning
+RUN echo "Listing contents of AFFiNE directory after clone:" && ls -l /AFFiNE
 
-  # Set the default command to start PostgreSQL
-  CMD ["su", "-", "postgres", "-c", "/usr/pgsql-13/bin/postgres -D /var/lib/pgsql/13/data"]
+# Set the working directory to /AFFiNE
+WORKDIR /AFFiNE
+
+# Install dependencies and build the project using workspaces
+RUN yarn install && \
+    yarn build:server-native && \
+    yarn workspace @affine/server build && \
+    yarn workspace @affine/server postinstall && \
+    yarn workspace @affine/server data-migration && \
+    yarn workspace @affine/server predeploy
+
+# Set environment variables
+ENV REDIS_SERVER_HOST=192.168.1.2 \
+    DATABASE_URL=postgres://affine:affine@192.168.1.2:5432/affine \
+    BUILD_TYPE=stable
+
+# Command to run the application
+CMD ["node", "--import", "./scripts/register.js", "./dist/index.js"]
