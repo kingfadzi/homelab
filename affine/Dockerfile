@@ -5,6 +5,7 @@ WORKDIR /AFFiNE
 # Set environment variables
 ENV REDIS_SERVER_HOST=192.168.1.88
 ENV DATABASE_URL=postgres://affine:affine@192.168.1.88:5432/affine
+ENV AFFINE_SERVER_HOST={AFFINE_SERVER_HOST}
 
 # Run the yarn command
 RUN yarn workspace @affine/server prisma db push
