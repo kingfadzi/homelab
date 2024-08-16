@@ -1,6 +1,5 @@
 # Use the previously built base image
-FROM elara.butterflycluster.com/repository/prod-docker/affine:v0.17.0-canary.3
-
+FROM elara.butterflycluster.com/repository/prod-docker/affine:0.17.0-canary.3-fork
 WORKDIR /AFFiNE
 
 # Set environment variables
@@ -26,4 +25,4 @@ EXPOSE 3010
 
 # Command to run the application
 # CMD ["/bin/bash"]
-CMD ["node" "--import" "./scripts/register.js" "./dist/index.js"]
+CMD ["node", "--import", "./scripts/register.js", "./dist/index.js"]
