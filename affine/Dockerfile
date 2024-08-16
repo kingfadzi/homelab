@@ -17,6 +17,7 @@ RUN yum install -y git curl gcc gcc-c++ glibc-devel make && \
     yum clean all && \
     rm -rf /var/cache/yum nodesource_setup.sh
 
+# Set the PATH environment variable for Cargo
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Clone the AFFiNE repository and checkout the specific tag
@@ -30,18 +31,48 @@ RUN echo "Listing contents of AFFiNE directory after clone:" && ls -l /AFFiNE
 # Set the working directory to /AFFiNE
 WORKDIR /AFFiNE
 
-ENV REDIS_SERVER_HOST=192.168.1.88 \    
-    DATABASE_URL=postgres://affine:affine@192.168.1.88:5432/affine \    
+# Set environment variables
+ENV REDIS_SERVER_HOST=192.168.1.88 \
+    DATABASE_URL=postgres://affine:affine@192.168.1.88:5432/affine \
     BUILD_TYPE=stable
-    
-   # Install dependencies and build the project using workspaces
-RUN yarn install && \
-    yarn build:server-native && \
-    yarn workspace @affine/server build && \
-    yarn workspace @affine/server postinstall && \
-    yarn workspace @affine/server data-migration && \
-    yarn workspace @affine/server predeploy
 
+# Install dependencies
+RUN echo "Installing dependencies..." && \
+    yarn install && \
+    echo "Dependencies installed."
+
+# Build the server-native project
+RUN echo "Building server-native project..." && \
+    yarn build:server-native && \
+    echo "Server-native project built."
+
+# Build the @affine/server workspace
+RUN echo "Building @affine/server workspace..." && \
+    yarn workspace @affine/server build && \
+    echo "@affine/server workspace built."
+
+# Run postinstall for @affine/server workspace
+RUN echo "Running postinstall for @affine/server workspace..." && \
+    yarn workspace @affine/server postinstall && \
+    echo "Postinstall for @affine/server completed."
+
+# Run data migration for @affine/server workspace
+RUN echo "Running data migration for @affine/server workspace..." && \
+    yarn workspace @affine/server data-migration && \
+    echo "Data migration for @affine/server completed."
+
+# Run predeploy for @affine/server workspace
+RUN echo "Running predeploy for @affine/server workspace..." && \
+    yarn workspace @affine/server predeploy && \
+    echo "Predeploy for @affine/server completed."
+
+# Clone the additional repository and copy static files
+RUN echo "Cloning the additional repository..." && \
+    git clone https://github.com/kingfadzi/affinity.git && \
+    echo "Cloned additional repository." && \
+    cd affinity && \
+    cp -r ./static /AFFiNE && \
+    echo "Copied static files to /AFFiNE."
 
 # Command to run the application
 CMD ["node", "--import", "./scripts/register.js", "./dist/index.js"]
