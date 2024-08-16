@@ -10,6 +10,10 @@ RUN yum install -y git curl && \
     source $HOME/.cargo/env && \
     rustup update && \
     rustup default stable && \
+    # Smoke test to ensure Cargo is installed correctly
+    cargo --version && \
+    rustc --version && \
+    # Clean up
     yum clean all && \
     rm -rf /var/cache/yum nodesource_setup.sh
 
