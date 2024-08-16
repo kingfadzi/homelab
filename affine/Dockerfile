@@ -57,8 +57,8 @@ RUN echo "Running postinstall for @affine/server workspace..." && \
     echo "Postinstall for @affine/server completed."
 
 # Run Prisma database push for @affine/server workspace
-    RUN echo "Running Prisma database push for @affine/server workspace..." && \    
-    yarn workspace @affine/server prisma db push && \    
+    RUN echo "Running Prisma database push for @affine/server workspace..." && \
+    yarn workspace @affine/server prisma db push && \
     echo "Prisma database push completed."
 
 #RUN echo "Running data migration for @affine/server workspace..." && \
@@ -66,9 +66,9 @@ RUN echo "Running postinstall for @affine/server workspace..." && \
 #    echo "Data migration for @affine/server completed."
 
 # Run predeploy for @affine/server workspace
-RUN echo "Running predeploy for @affine/server workspace..." && \
-    yarn workspace @affine/server predeploy && \
-    echo "Predeploy for @affine/server completed."
+#RUN echo "Running predeploy for @affine/server workspace..." && \
+#    yarn workspace @affine/server predeploy && \
+#    echo "Predeploy for @affine/server completed."
 
 # Clone the additional repository and copy static files
 RUN echo "Cloning the additional repository..." && \
