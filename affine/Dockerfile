@@ -27,4 +27,5 @@ WORKDIR /app
 EXPOSE 3010
 
 # Command to run the application
-CMD ["node", "--import", "./scripts/register.js", "./dist/index.js"]
+# CMD ["node", "--import", "./scripts/register.js", "./dist/index.js"]
+CMD ["sh", "-c", "node ./scripts/self-host-predeploy && node ./dist/index.js"]
