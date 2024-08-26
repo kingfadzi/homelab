@@ -50,3 +50,8 @@ if ! lsof -i:3010 > /dev/null 2>&1; then
 else
   echo "Node.js app already running."
 fi
+
+# Start Super Productivity
+echo "Starting Super Productivity..."
+cd /path/to/super-productivity
+nohup http-server -p 8080 &
