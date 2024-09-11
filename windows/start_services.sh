@@ -46,13 +46,23 @@ else
   echo "AFFiNE is already running."
 fi
 
-if ! lsof -i:3000 > /dev/null 2>&1; then # Assuming Metabase runs on port 3000
+export MB_DB_TYPE=postgres
+export MB_DB_DBNAME=metabaseappdb
+export MB_DB_PORT=5432
+export MB_DB_USER=postgres
+export MB_DB_PASS=postgres
+export MB_DB_HOST=localhost
+
+if ! lsof -i:3000 > /dev/null 2>&1; then
   echo "Starting Metabase..."
   cd /home/fadzi/tools/metabase
   nohup java -jar metabase.jar > /home/fadzi/tools/metabase/logs/metabase_log.log 2>&1 &
 else
   echo "Metabase is already running."
 fi
+
+export FLASK_APP=superset
+export SUPERSET_CONFIG_PATH=/home/fadzi/tools/superset/superset_config.py
 
 if ! lsof -i:8099 > /dev/null 2>&1; then
   echo "Starting Apache Superset..."
