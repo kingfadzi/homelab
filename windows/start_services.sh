@@ -38,7 +38,7 @@ else
   echo "Redis is already running."
 fi
 
-if ! lsof -i:3010 > /dev/null 2>&1; then
+if ! ss -tnlp | grep ':3010' > /dev/null; then
   echo "Starting AFFiNE..."
   cd /home/fadzi/tools/affinity-main
   nohup sh -c 'node ./scripts/self-host-predeploy && node --loader ./scripts/loader.js ./dist/index.js' > /home/fadzi/tools/affinity-main/logs/affine_log.log 2>&1 &
@@ -53,7 +53,7 @@ export MB_DB_USER=postgres
 export MB_DB_PASS=postgres
 export MB_DB_HOST=localhost
 
-if ! lsof -i:3000 > /dev/null 2>&1; then
+if ! ss -tnlp | grep ':3000' > /dev/null; then
   echo "Starting Metabase..."
   cd /home/fadzi/tools/metabase
   nohup java -jar metabase.jar > /home/fadzi/tools/metabase/logs/metabase_log.log 2>&1 &
@@ -64,7 +64,7 @@ fi
 export FLASK_APP=superset
 export SUPERSET_CONFIG_PATH=/home/fadzi/tools/superset/superset_config.py
 
-if ! lsof -i:8099 > /dev/null 2>&1; then
+if ! ss -tnlp | grep ':8099' > /dev/null; then
   echo "Starting Apache Superset..."
   cd /home/fadzi/tools/superset
   source /home/fadzi/venv/bin/activate
@@ -73,10 +73,10 @@ else
   echo "Apache Superset is already running."
 fi
 
-if ! lsof -i:8080 > /dev/null 2>&1; then
+if ! ss -tnlp | grep ':8088' > /dev/null; then
   echo "Starting Super Productivity..."
   cd /home/fadzi/tools/super-productivity-9.0.7/dist/browser
-  nohup http-server -p 8080 > /home/fadzi/tools/super-productivity-9.0.7/dist/browser/logs/super_prod_log.log 2>&1 &
+  nohup http-server -p 8088 > /home/fadzi/tools/super-productivity-9.0.7/dist/browser/logs/super_prod_log.log 2>&1 &
 else
   echo "Super Productivity is already running."
 fi
