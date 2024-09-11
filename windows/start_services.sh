@@ -39,44 +39,34 @@ else
 fi
 
 if ! lsof -i:3010 > /dev/null 2>&1; then
-  echo "Starting  AFFiNE..."
+  echo "Starting AFFiNE..."
   cd /home/fadzi/tools/affinity-main
-  node ./scripts/self-host-predeploy && node ./dist/index.js &
+  nohup sh -c 'node ./scripts/self-host-predeploy && node --loader ./scripts/loader.js ./dist/index.js' > /home/fadzi/tools/affinity-main/logs/affine_log.log 2>&1 &
 else
-  echo "AFFiNE already running."
+  echo "AFFiNE is already running."
 fi
 
-echo "Starting Super Productivity..."
-cd /home/fadzi/tools/super-productivity-9.0.7/dist/browser
-nohup http-server -p 8080 &
-
-export MB_DB_TYPE=postgres
-export MB_DB_DBNAME=metabaseappdb
-export MB_DB_PORT=5432
-export MB_DB_USER=postgres
-export MB_DB_PASS=postgres
-export MB_DB_HOST=localhost
-
-echo "Starting Metabase..."
-cd /home/fadzi/tools/metabase
-if type java > /dev/null 2>&1; then
-    java -jar metabase.jar &
+if ! lsof -i:3000 > /dev/null 2>&1; then # Assuming Metabase runs on port 3000
+  echo "Starting Metabase..."
+  cd /home/fadzi/tools/metabase
+  nohup java -jar metabase.jar > /home/fadzi/tools/metabase/logs/metabase_log.log 2>&1 &
 else
-    echo "Java not found, please install it to run Metabase."
-    exit 1
+  echo "Metabase is already running."
 fi
 
-export FLASK_APP=superset
-export SUPERSET_CONFIG_PATH=/home/fadzi/tools/superset/superset_config.py
+if ! lsof -i:8099 > /dev/null 2>&1; then
+  echo "Starting Apache Superset..."
+  cd /home/fadzi/tools/superset
+  source /home/fadzi/venv/bin/activate
+  nohup superset run -p 8099 -h 0.0.0.0 --with-threads --reload --debugger > /home/fadzi/tools/superset/logs/superset_log.log 2>&1 &
+else
+  echo "Apache Superset is already running."
+fi
 
-echo "Starting Apache Superset..."
-cd /home/fadzi/tools/superset
-source /home/fadzi/venv/bin/activate
-superset run -p 8099 -h 0.0.0.0 --with-threads --reload --debugger &
-
-echo "Checking if Apache Superset is up..."
-until $(curl --output /dev/null --silent --head --fail http://localhost:8099/health); do
-    printf '.'
-    sleep 5
-done
-echo "Apache Superset is up and running."
+if ! lsof -i:8080 > /dev/null 2>&1; then
+  echo "Starting Super Productivity..."
+  cd /home/fadzi/tools/super-productivity-9.0.7/dist/browser
+  nohup http-server -p 8080 > /home/fadzi/tools/super-productivity-9.0.7/dist/browser/logs/super_prod_log.log 2>&1 &
+else
+  echo "Super Productivity is already running."
+fi
