@@ -54,15 +54,27 @@ psql_check() {
 }
 
 ##############################################################################
+# Ensure directories for each service
+##############################################################################
+
+ensure_dir() {
+    local dirpath="$1"
+    if [ ! -d "$dirpath" ]; then
+        log "Creating directory: $dirpath"
+        mkdir -p "$dirpath"
+    fi
+}
+
+##############################################################################
 # POSTGRES INIT / START / STOP
 ##############################################################################
 
 ensure_permissions() {
-    [ ! -d "$POSTGRES_DATA_DIR" ] && mkdir -p "$POSTGRES_DATA_DIR"
+    ensure_dir "$POSTGRES_DATA_DIR"
     chown -R postgres:postgres "$POSTGRES_DATA_DIR"
     chmod 700 "$POSTGRES_DATA_DIR"
 
-    [ ! -d "$POSTGRES_LOG_DIR" ] && mkdir -p "$POSTGRES_LOG_DIR"
+    ensure_dir "$POSTGRES_LOG_DIR"
     chown postgres:postgres "$POSTGRES_LOG_DIR"
 }
 
@@ -82,7 +94,7 @@ init_postgres() {
 
     log "Starting PostgreSQL (init) ..."
     sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" \
-        start -l "$POSTGRES_LOG_DIR/$POSTGRES_LOGFILE_NAME"
+        start -l "$POSTGRES_LOG_DIR/postgres_init.log"
 
     local init_ok=false
     for i in $(seq 1 $PG_MAX_WAIT); do
@@ -123,7 +135,7 @@ start_postgres() {
 
     log "Starting PostgreSQL..."
     sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" \
-        start -l "$POSTGRES_LOG_DIR/$POSTGRES_LOGFILE_NAME"
+        start -l "$POSTGRES_LOG_DIR/postgres.log"
 
     local started_ok=false
     for i in $(seq 1 $PG_MAX_WAIT); do
@@ -178,7 +190,7 @@ start_redis() {
     fi
 
     log "Starting Redis..."
-    redis-server "$REDIS_CONF_FILE" &
+    redis-server /etc/redis.conf &
     sleep 1
 
     if ! pgrep -f "redis-server" &>/dev/null; then
@@ -206,10 +218,10 @@ stop_redis() {
 ##############################################################################
 
 start_affine() {
-    if [ ! -d "$AFFINE_HOME" ]; then
-        log "ERROR: AFFiNE home dir not found: $AFFINE_HOME"
-        return 1
-    fi
+    # Ensure directories exist for AFFiNE
+    ensure_dir "$AFFINE_HOME"
+    ensure_dir "$AFFINE_LOG_DIR"
+
     if ss -tnlp | grep ":$AFFINE_PORT" &>/dev/null; then
         log "AFFiNE is already running."
         return 0
@@ -246,10 +258,9 @@ stop_affine() {
 ##############################################################################
 
 start_metabase() {
-    if [ ! -d "$METABASE_HOME" ]; then
-        log "ERROR: Metabase home dir not found: $METABASE_HOME"
-        return 1
-    fi
+    ensure_dir "$METABASE_HOME"
+    ensure_dir "$METABASE_LOG_DIR"
+
     if ss -tnlp | grep ":$METABASE_PORT" &>/dev/null; then
         log "Metabase is already running."
         return 0
@@ -286,10 +297,9 @@ stop_metabase() {
 ##############################################################################
 
 start_superset() {
-    if [ ! -d "$SUPERSET_HOME" ]; then
-        log "ERROR: Superset home dir not found: $SUPERSET_HOME"
-        return 1
-    fi
+    ensure_dir "$SUPERSET_HOME"
+    ensure_dir "$SUPERSET_LOG_DIR"
+
     if ss -tnlp | grep ":$SUPERSET_PORT" &>/dev/null; then
         log "Superset is already running."
         return 0
@@ -327,10 +337,9 @@ stop_superset() {
 ##############################################################################
 
 start_super_productivity() {
-    if [ ! -d "$SUPER_PROD_HOME" ]; then
-        log "ERROR: Super Productivity dir not found: $SUPER_PROD_HOME"
-        return 1
-    fi
+    ensure_dir "$SUPER_PROD_HOME"
+    ensure_dir "$SUPER_PROD_LOG_DIR"
+
     if ss -tnlp | grep ":$SUPER_PROD_PORT" &>/dev/null; then
         log "Super Productivity is already running."
         return 0
@@ -415,7 +424,7 @@ stop_all() {
 }
 
 ##############################################################################
-# RESTART (Stop then Start) - Illegal if Postgres Not Init
+# RESTART
 ##############################################################################
 
 restart_postgres() {
@@ -455,7 +464,6 @@ restart_super_productivity() {
 restart_all() {
     log "Restarting all services..."
 
-    # If Postgres isn't initialized, bail
     if [ ! -f "$POSTGRES_DATA_DIR/PG_VERSION" ]; then
         log "ERROR: Cannot restart all. PostgreSQL not initialized."
         return 1
