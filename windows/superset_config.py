@@ -1,5 +1,5 @@
 # Database Configuration
-SQLALCHEMY_DATABASE_URI = 'postgresql://username:password@localhost/superset'
+SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:postgres@localhost/superset'
 
 # Increase Row Limit to 1 Million
 ROW_LIMIT = 1000000
