@@ -101,11 +101,18 @@ RUN mkdir -p "$SUPERSET_HOME/logs"
 # Make sure superset_config.py is in the same dir as your Dockerfile
 COPY superset_config.py "$SUPERSET_HOME/superset_config.py"
 
+# 1) Create a Metabase folder
+RUN mkdir -p /root/tools/metabase
+
+# 2) Download Metabase v0.52.4 jar
+RUN cd /root/tools/metabase && \
+    wget https://downloads.metabase.com/v0.52.4/metabase.jar -O metabase.jar
+
 # 9) Copy your manual services script
 COPY services.sh /usr/local/bin/services.sh
 RUN chmod +x /usr/local/bin/services.sh
 
 # Expose Postgres (5432), Redis (6379), and Superset (8099)
-EXPOSE 5432 6379 8099
+EXPOSE 5432 6379 8099 3000
 
 CMD ["/bin/bash"]

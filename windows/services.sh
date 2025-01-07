@@ -30,6 +30,14 @@ METABASE_LOG_DIR="$METABASE_HOME/logs"
 METABASE_PORT="3000"
 METABASE_JAR="metabase.jar"
 
+export MB_DB_TYPE="postgres"
+export MB_DB_DBNAME="metabaseappdb"
+export MB_DB_PORT="5432"
+export MB_DB_USER="postgres"
+export MB_DB_PASS="postgres"
+export MB_DB_HOST="localhost"
+
+
 # Superset
 SUPERSET_HOME="/root/superset"
 SUPERSET_CONFIG="$SUPERSET_HOME/superset_config.py"
@@ -105,8 +113,8 @@ init_postgres() {
             log "Creating 'superset' DB if not exists..."
             su postgres -c "psql -tc \"SELECT 1 FROM pg_database WHERE datname = 'superset'\" | grep -q 1 || psql -c \"CREATE DATABASE superset WITH OWNER postgres;\""
 
-            log "Creating 'metabasedb' DB if not exists..."
-            su postgres -c "psql -tc \"SELECT 1 FROM pg_database WHERE datname = 'metabasedb'\" | grep -q 1 || psql -c \"CREATE DATABASE metabasedb WITH OWNER postgres;\""
+            log "Creating 'metabaseappdb' DB if not exists..."
+            su postgres -c "psql -tc \"SELECT 1 FROM pg_database WHERE datname = 'metabaseappdb'\" | grep -q 1 || psql -c \"CREATE DATABASE metabaseappdb WITH OWNER postgres;\""
 
             log "Creating 'affine' DB if not exists..."
             su postgres -c "psql -tc \"SELECT 1 FROM pg_database WHERE datname = 'affine'\" | grep -q 1 || psql -c \"CREATE DATABASE affine WITH OWNER postgres;\""
@@ -232,6 +240,12 @@ start_affine() {
     ensure_dir "$AFFINE_HOME"
     ensure_dir "$AFFINE_LOG_DIR"
 
+    # Ensure Postgres is running
+    if ! psql_check; then
+        log "ERROR: Postgres is not running; cannot start Affine."
+        return 1
+    fi
+
     if ss -tnlp | grep ":$AFFINE_PORT" &>/dev/null; then
         log "AFFiNE is already running."
         return 0
@@ -270,6 +284,12 @@ stop_affine() {
 start_metabase() {
     ensure_dir "$METABASE_HOME"
     ensure_dir "$METABASE_LOG_DIR"
+
+    # Ensure Postgres is running
+    if ! psql_check; then
+        log "ERROR: Postgres is not running; cannot start Metabase."
+        return 1
+    fi
 
     if ss -tnlp | grep ":$METABASE_PORT" &>/dev/null; then
         log "Metabase is already running."
@@ -311,6 +331,50 @@ redis_check() {
 }
 
 ##############################################################################
+# SUPERSET INIT
+##############################################################################
+
+init_superset() {
+    # Ensure Postgres is running
+    if ! psql_check; then
+        log "ERROR: PostgreSQL is not running; cannot init Superset."
+        return 1
+    fi
+
+    # Ensure Redis is running (if your superset config depends on it)
+    if ! redis_check; then
+        log "ERROR: Redis is not running; cannot init Superset."
+        return 1
+    fi
+
+    log "Initializing Superset..."
+
+    # 1) Migrate the DB (create tables, etc.)
+    superset db upgrade
+
+    # 2) Create admin user (adjust username/password as needed)
+    superset fab create-admin \
+        --username admin \
+        --password admin \
+        --firstname Admin \
+        --lastname User \
+        --email admin@admin.com
+
+    # 3) Load examples (optional)
+    superset load_examples
+
+    # 4) Finalize
+    superset init
+
+    # Create sentinel file so 'start_superset' knows we're initialized
+    touch /root/tools/superset/.superset_init_done
+
+    log "Superset initialization complete."
+    return 0
+}
+
+
+##############################################################################
 # SUPERTSET START / STOP
 ##############################################################################
 
@@ -324,6 +388,11 @@ start_superset() {
     # Ensure Redis is running
     if ! redis_check; then
         log "ERROR: Redis is not running; cannot start Superset."
+        return 1
+    fi
+
+    if [ ! -f "/root/tools/superset/.superset_init_done" ]; then
+        log "ERROR: Superset not initialized. Run: services.sh init superset"
         return 1
     fi
 
@@ -516,8 +585,15 @@ restart_all() {
 case "$1" in
     init)
         case "$2" in
-            postgres) init_postgres ;;
-            *) echo "Usage: $0 init postgres" ;;
+            postgres)
+                init_postgres
+                ;;
+            superset)
+                init_superset
+                ;;
+            *)
+                echo "Usage: $0 init {postgres|superset}"
+                ;;
         esac
         ;;
     start)
