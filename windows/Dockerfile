@@ -71,14 +71,16 @@ RUN pip3 install --upgrade setuptools wheel && \
 
 # 8) Create Superset directory (matching the script)
 RUN mkdir -p "$SUPERSET_HOME"
-# If you have a local superset_config.py:
-# COPY superset_config.py "$SUPERSET_HOME/superset_config.py"
+
+# Copy your custom superset_config.py into the container
+# Make sure superset_config.py is in the same dir as your Dockerfile
+COPY superset_config.py "$SUPERSET_HOME/superset_config.py"
 
 # 9) Copy your manual services script
 COPY services.sh /usr/local/bin/services.sh
 RUN chmod +x /usr/local/bin/services.sh
 
-# Expose Postgres, Redis, and the new Superset port (8099)
+# Expose Postgres (5432), Redis (6379), and Superset (8099)
 EXPOSE 5432 6379 8099
 
 CMD ["/bin/bash"]
