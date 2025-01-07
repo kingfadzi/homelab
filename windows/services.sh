@@ -335,7 +335,20 @@ redis_check() {
 ##############################################################################
 
 init_superset() {
-    # Assume Postgres & Redis checks are done above
+     # Ensure Postgres is running
+     if ! psql_check; then
+         log "ERROR: PostgreSQL is not running; cannot init Superset."
+         return 1
+     fi
+
+     # Ensure Redis is running (if your superset config depends on it)
+     if ! redis_check; then
+         log "ERROR: Redis is not running; cannot init Superset."
+         return 1
+     fi
+
+    export FLASK_APP=superset
+    export SUPERSET_CONFIG_PATH="$SUPERSET_CONFIG"
 
     # Create or verify your Superset log directory
     mkdir -p "$SUPERSET_LOG_DIR"
