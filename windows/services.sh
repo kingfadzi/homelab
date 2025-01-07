@@ -335,42 +335,35 @@ redis_check() {
 ##############################################################################
 
 init_superset() {
-    # Ensure Postgres is running
-    if ! psql_check; then
-        log "ERROR: PostgreSQL is not running; cannot init Superset."
-        return 1
-    fi
+    # Assume Postgres & Redis checks are done above
 
-    # Ensure Redis is running (if your superset config depends on it)
-    if ! redis_check; then
-        log "ERROR: Redis is not running; cannot init Superset."
-        return 1
-    fi
+    # Create or verify your Superset log directory
+    mkdir -p "$SUPERSET_LOG_DIR"
 
-    export FLASK_APP=superset
-    export SUPERSET_CONFIG_PATH="$SUPERSET_CONFIG"
+    local LOGFILE="$SUPERSET_LOG_DIR/superset_init.log"
 
-    log "Initializing Superset..."
+    log "Initializing Superset (logging to $LOGFILE)..."
 
-    # 1) Migrate the DB (create tables, etc.)
-    superset db upgrade
+    # 1) Database upgrade
+    superset db upgrade >> "$LOGFILE" 2>&1
 
-    # 2) Create admin user (adjust username/password as needed)
+    # 2) Create admin user
     superset fab create-admin \
         --username admin \
         --password admin \
         --firstname Admin \
         --lastname User \
-        --email admin@admin.com
+        --email admin@admin.com \
+        >> "$LOGFILE" 2>&1
 
     # 3) Load examples (optional)
-    superset load_examples
+    # superset load_examples >> "$LOGFILE" 2>&1
 
     # 4) Finalize
-    superset init
+    superset init >> "$LOGFILE" 2>&1
 
-    # Create sentinel file so 'start_superset' knows we're initialized
-    touch "$SUPERSET_HOME"/.superset_init_done
+    # Optionally set a sentinel or do other steps
+    touch "$SUPERSET_HOME/.superset_init_done"
 
     log "Superset initialization complete."
     return 0
