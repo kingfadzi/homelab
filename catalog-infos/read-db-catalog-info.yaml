@@ -1,0 +1,16 @@
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: wordpress-database
+  description: "Database schema for the research Documents wordpress site."
+  tags:
+    - mysql8
+  links:
+    - url: https://nunki.butterflycluster.com/index.php?route=/database/structure&db=wordpress
+      title: Manage
+      icon: dashboard
+spec:
+  type: database
+  owner: infrastructure-team
+  dependsOn:
+    - resource:cygnus

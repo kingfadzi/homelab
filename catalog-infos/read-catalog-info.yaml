@@ -1,0 +1,24 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: research-documents
+  description: "A WordPress site dedicated to hosting research documents."
+  tags:
+    - wordpress
+    - documentation
+    - research
+  links:
+    - url: http://read.butterflycluster.com
+      title: Read Documents
+      icon: dashboard
+    - url: https://post.butterflycluster.com/wp-admin/post-new.php
+      title: Post a Document
+      icon: dashboard
+spec:
+  type: website
+  lifecycle: production
+  owner: web-team
+  system: information-synthesis
+  dependsOn:
+    - resource:cygnus
+    - resource:wordpress-database

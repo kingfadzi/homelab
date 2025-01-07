@@ -1,0 +1,64 @@
+# Use the official Red Hat Universal Base Image (UBI) 8 as the base
+FROM registry.access.redhat.com/ubi8/ubi:latest
+
+# Install Git, Node.js 18, Yarn, Rust, and development tools
+RUN yum install -y git curl gcc gcc-c++ glibc-devel make && \
+    curl -fsSL https://rpm.nodesource.com/setup_18.x | bash - && \
+    yum install -y nodejs && \
+    npm install -g yarn && \
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+    source $HOME/.cargo/env && \
+    rustup update && \
+    rustup default stable && \
+    # Smoke test to ensure Cargo is installed correctly
+    cargo --version && \
+    rustc --version && \
+    # Clean up
+    yum clean all && \
+    rm -rf /var/cache/yum nodesource_setup.sh
+
+# Set the PATH environment variable for Cargo
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Clone the AFFiNE repository and checkout the specific tag
+RUN git clone https://github.com/kingfadzi/AFFiNE.git --branch stable && \
+    cd AFFiNE && \
+    git checkout tags/v0.17.0-canary.3
+
+# Clone the additional repository
+RUN git clone https://github.com/kingfadzi/affinity.git
+
+# Set the working directory
+WORKDIR /AFFiNE
+
+ENV BUILD_TYPE=stable
+
+RUN echo "enableScripts: false" >> .yarnrc.yml
+
+# Install dependencies
+RUN echo "Installing dependencies..." && \
+    yarn install --inline-builds && \
+    echo "Dependencies installed."
+
+# Build the server-native project
+RUN echo "Building server-native project..." && \
+    yarn build:server-native && \
+    echo "Server-native project built."
+
+# Build the @affine/web workspace
+RUN echo "Building @affine/web workspace..." && \
+    yarn workspace @affine/web build && \
+    echo "@affine/web workspace built."
+
+# Build the @affine/admin workspace
+RUN echo "Building @affine/admin workspace..." && \
+    yarn workspace @affine/admin build && \
+    echo "@affine/admin workspace built."
+
+# Build the @affine/server workspace
+RUN echo "Building @affine/server workspace..." && \
+    yarn workspace @affine/server build && \
+    echo "@affine/server workspace built."
+
+# Set the default command to bash to allow inspection
+CMD ["/bin/bash"]

@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: csv-viewer-USER_NAME
+subjects:
+  - kind: User
+    name: "USER_NAME" # Use the email address as the name
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: csv-viewer
+  apiGroup: rbac.authorization.k8s.io

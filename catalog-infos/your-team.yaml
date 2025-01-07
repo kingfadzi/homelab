@@ -1,0 +1,23 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: your-team
+  namespace: default
+  description: "The team responsible for managing services and components in Backstage"
+spec:
+  type: team
+  profile:
+    displayName: "Your Team"
+    email: "your-team@example.com"
+    picture: "https://example.com/path/to/your/team/picture.png"
+  children:
+    - component:backstage
+    - component:gitlab
+    - component:haproxy
+    - component:grafana-lab-machines
+    - component:rafana-todoist
+    - component:wordpress-read
+    - component:wordpress-post
+    - component:pi-hole
+    - component:wiredguard
+    - component:firefly-iii

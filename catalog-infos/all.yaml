@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: homelab-all
+  description: A collection of all Backstage example entities, except users, groups, and templates
+spec:
+  targets:
+    - ./cygnus-catalog-info.yaml
+    - ./cygnus-webmin-catalog-info.yaml
+    - ./read-catalog-info.yaml
+    - ./read-db-catalog-info.yaml
+    - ./components.yaml
+
+    

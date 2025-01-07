@@ -1,0 +1,11 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: infrastructure-team
+  description: "Team responsible for managing infrastructure components."
+spec:
+  type: team
+  profile:
+    displayName: Infrastructure Team
+    email: infrastructure-team@example.com
+    picture: http://example.com/image.jpg  # Optional: Link to a team picture

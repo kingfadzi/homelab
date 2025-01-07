@@ -1,0 +1,11 @@
+$ttl 3600
+butterflycluster.com.	IN	SOA	cygnus.butterflycluster.com. fadzi.butterflycluster.net. (
+			2024031901
+			3600
+			600
+			1209600
+			3600 )
+butterflycluster.com.	IN	NS	localhost.
+api.ocp4.butterflycluster.com.	IN	A	192.168.1.190
+*.apps.ocp4.butterflycluster.com.	IN	A	192.168.1.190
+

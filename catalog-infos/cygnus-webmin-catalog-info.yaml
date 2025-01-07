@@ -1,0 +1,18 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: cygnus-webmin
+  description: "A web-hosting control panel for Cygnus servers."
+  tags:
+    - webmin
+  links:
+    - url: http://cygnus.butterflycluster.com
+      title: Webmin
+      icon: dashboard
+spec:
+  type: website
+  lifecycle: production
+  owner: infrastructure-team
+  system: vsphere
+  dependsOn:
+    - resource:cygnus
