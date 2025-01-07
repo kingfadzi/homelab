@@ -8,33 +8,29 @@ LOG_FILE="/var/log/services.log"
 
 # PostgreSQL 13
 POSTGRES_DATA_DIR="/var/lib/pgsql/13/data"
-POSTGRES_SOCKET_DIR="/tmp"  # <-- Use /tmp for the Unix domain socket
 POSTGRES_LOG_DIR="/var/lib/logs"
 POSTGRES_LOGFILE_NAME="postgres.log"
 INITDB_BIN="/usr/pgsql-13/bin/initdb"
 PGCTL_BIN="/usr/pgsql-13/bin/pg_ctl"
+PG_HOST="localhost"
+PG_PORT="5432"
 
-# Redis
 REDIS_CONF_FILE="/etc/redis.conf"
 
-# AFFINE
 AFFINE_HOME="/root/tools/affinity-main"
 AFFINE_LOG_DIR="$AFFINE_HOME/logs"
 AFFINE_PORT="3010"
 
-# Metabase
 METABASE_HOME="/root/tools/metabase"
 METABASE_LOG_DIR="$METABASE_HOME/logs"
 METABASE_PORT="3000"
 METABASE_JAR="metabase.jar"
 
-# Superset
 SUPERSET_HOME="/root/superset"
 SUPERSET_CONFIG="$SUPERSET_HOME/superset_config.py"
 SUPERSET_LOG_DIR="$SUPERSET_HOME/logs"
 SUPERSET_PORT="8099"
 
-# Super Productivity
 SUPER_PROD_HOME="/root/tools/super-productivity-9.0.7/dist/browser"
 SUPER_PROD_LOG_DIR="$SUPER_PROD_HOME/logs"
 SUPER_PROD_PORT="8088"
@@ -52,9 +48,8 @@ function log {
 ##############################################################################
 
 function wait_for_postgres {
-    log "Waiting for PostgreSQL..."
-    # Check default local socket at /tmp (since POSTGRES_SOCKET_DIR=/tmp)
-    until pg_isready -h "$POSTGRES_SOCKET_DIR" &>/dev/null; do
+    log "Waiting for PostgreSQL on $PG_HOST:$PG_PORT..."
+    until pg_isready -h "$PG_HOST" -p "$PG_PORT" &>/dev/null; do
         sleep 1
     done
 }
@@ -71,13 +66,13 @@ function wait_for_redis {
 ##############################################################################
 
 function start_postgres {
-    # Ensure /var/lib/logs exists and is owned by postgres
+    # Ensure /var/lib/logs exists
     if [ ! -d "$POSTGRES_LOG_DIR" ]; then
         mkdir -p "$POSTGRES_LOG_DIR"
         chown postgres:postgres "$POSTGRES_LOG_DIR"
     fi
 
-    # Initialize if needed
+    # Init if needed
     if [ ! -f "$POSTGRES_DATA_DIR/PG_VERSION" ]; then
         log "PostgreSQL not initialized. Initializing..."
         sudo -u postgres "$INITDB_BIN" -D "$POSTGRES_DATA_DIR"
@@ -95,12 +90,12 @@ function start_postgres {
     fi
 
     # Start if not running
-    if ! pg_isready -h "$POSTGRES_SOCKET_DIR" &>/dev/null; then
+    if ! pg_isready -h "$PG_HOST" -p "$PG_PORT" &>/dev/null; then
         log "Starting PostgreSQL..."
         sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" \
             start -l "$POSTGRES_LOG_DIR/$POSTGRES_LOGFILE_NAME"
         wait_for_postgres
-        if ! pg_isready -h "$POSTGRES_SOCKET_DIR" &>/dev/null; then
+        if ! pg_isready -h "$PG_HOST" -p "$PG_PORT" &>/dev/null; then
             log "ERROR: PostgreSQL failed to start."
             exit 1
         fi
