@@ -8,7 +8,7 @@ LOG_FILE="/var/log/services.log"
 
 # PostgreSQL 13
 POSTGRES_DATA_DIR="/var/lib/pgsql/13/data"
-POSTGRES_SOCKET_DIR="/var/lib/pgsql/socket"
+POSTGRES_SOCKET_DIR="/tmp"  # <-- Use /tmp for the Unix domain socket
 POSTGRES_LOG_DIR="/var/lib/logs"
 POSTGRES_LOGFILE_NAME="postgres.log"
 INITDB_BIN="/usr/pgsql-13/bin/initdb"
@@ -17,7 +17,7 @@ PGCTL_BIN="/usr/pgsql-13/bin/pg_ctl"
 # Redis
 REDIS_CONF_FILE="/etc/redis.conf"
 
-# AFFiNE
+# AFFINE
 AFFINE_HOME="/root/tools/affinity-main"
 AFFINE_LOG_DIR="$AFFINE_HOME/logs"
 AFFINE_PORT="3010"
@@ -53,6 +53,7 @@ function log {
 
 function wait_for_postgres {
     log "Waiting for PostgreSQL..."
+    # Check default local socket at /tmp (since POSTGRES_SOCKET_DIR=/tmp)
     until pg_isready -h "$POSTGRES_SOCKET_DIR" &>/dev/null; do
         sleep 1
     done
