@@ -13,10 +13,9 @@ POSTGRES_LOGFILE_NAME="postgres.log"
 INITDB_BIN="/usr/pgsql-13/bin/initdb"
 PGCTL_BIN="/usr/pgsql-13/bin/pg_ctl"
 
-PG_HOST="localhost"
+PG_HOST="127.0.0.1"   # We'll use TCP to check readiness
 PG_PORT="5432"
-
-MAX_WAIT=5  # max seconds to wait in readiness loops
+MAX_WAIT=10          # seconds to wait in readiness loops
 
 ##############################################################################
 # LOGGING & UTILS
@@ -26,53 +25,84 @@ log() {
     echo "$(date +'%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
 }
 
-is_postgres_ready() {
-    pg_isready -h "$PG_HOST" -p "$PG_PORT" &>/dev/null
+function psql_check {
+    # We'll rely on a simple test query
+    # '-c "\q"' effectively just connects & quits
+    # 2>/dev/null hides connection errors
+    su postgres -c "psql --host=$PG_HOST --port=$PG_PORT --username=postgres -c '\q'" 2>/dev/null
 }
 
 ##############################################################################
-# START POSTGRES
+# PERMISSIONS CHECK
 ##############################################################################
 
-start_postgres() {
-    # Ensure /var/lib/logs exists
+ensure_permissions() {
+    if [ ! -d "$POSTGRES_DATA_DIR" ]; then
+        log "Creating PostgreSQL data directory at $POSTGRES_DATA_DIR..."
+        mkdir -p "$POSTGRES_DATA_DIR"
+    fi
+    log "Ensuring correct ownership and permissions for $POSTGRES_DATA_DIR..."
+    chown -R postgres:postgres "$POSTGRES_DATA_DIR"
+    chmod 700 "$POSTGRES_DATA_DIR"
+
     if [ ! -d "$POSTGRES_LOG_DIR" ]; then
         mkdir -p "$POSTGRES_LOG_DIR"
         chown postgres:postgres "$POSTGRES_LOG_DIR"
     fi
+}
 
-    # If database is uninitialized
+##############################################################################
+# START & WAIT FOR READINESS
+##############################################################################
+
+start_postgres() {
+    ensure_permissions
+
+    # If DB uninitialized
     if [ ! -f "$POSTGRES_DATA_DIR/PG_VERSION" ]; then
         log "PostgreSQL not initialized. Initializing..."
         sudo -u postgres "$INITDB_BIN" -D "$POSTGRES_DATA_DIR"
 
-        log "First-time startup to set password..."
+        # Inline config edits for remote access
+        # (listen_addresses, host all all 0.0.0.0/0 md5)
+        log "Configuring PostgreSQL for remote access..."
+        su postgres -c "echo \"listen_addresses = '*'\" >> \"$POSTGRES_DATA_DIR/postgresql.conf\""
+        su postgres -c "echo \"host all all 0.0.0.0/0 md5\" >> \"$POSTGRES_DATA_DIR/pg_hba.conf\""
+
+        log "First-time startup for password setup..."
         sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" \
             start -l "$POSTGRES_LOG_DIR/$POSTGRES_LOGFILE_NAME"
 
-        # Short wait for the initial start
+        # Wait up to MAX_WAIT for first-time startup
+        first_time_ok=false
         for i in $(seq 1 $MAX_WAIT); do
-            if is_postgres_ready; then
-                log "PostgreSQL (first-time) is up. Setting default password..."
-                sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
-
-                log "Stopping after init..."
-                sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" stop
-                sleep 2  # ensure it's fully stopped
-                log "Initialization done. Run 'services.sh start postgres' again for normal start."
-                return 0
+            if psql_check; then
+                log "PostgreSQL (first-time) is up. Setting 'postgres' password..."
+                su postgres -c "psql --host=$PG_HOST --port=$PG_PORT --username=postgres -c \"ALTER USER postgres WITH PASSWORD 'postgres';\""
+                first_time_ok=true
+                break
             fi
             sleep 1
         done
 
-        log "ERROR: First-time startup did not become ready within $MAX_WAIT seconds."
-        # Attempt to stop if partial start
-        sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" stop &>/dev/null
-        return 1
+        if [ "$first_time_ok" = false ]; then
+            log "ERROR: First-time startup did not become ready within $MAX_WAIT seconds."
+            sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" stop &>/dev/null
+            return 1
+        fi
+
+        # Stop after first-time init
+        log "Stopping PostgreSQL after init..."
+        sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" stop
+        sleep 2  # ensure it's fully stopped
+
+        log "Initialization done. Run 'services.sh start postgres' again for normal start."
+        return 0
     fi
 
-    # Normal start if already initialized
-    if is_postgres_ready; then
+    # If already initialized, do a normal start
+    # Check if it's already running
+    if psql_check; then
         log "PostgreSQL is already running."
         return 0
     else
@@ -80,27 +110,31 @@ start_postgres() {
         sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" \
             start -l "$POSTGRES_LOG_DIR/$POSTGRES_LOGFILE_NAME"
 
-        # Short readiness check
+        started_ok=false
         for i in $(seq 1 $MAX_WAIT); do
-            if is_postgres_ready; then
+            if psql_check; then
                 log "PostgreSQL started successfully."
-                return 0
+                started_ok=true
+                break
             fi
             sleep 1
         done
 
-        log "ERROR: PostgreSQL did not become ready within $MAX_WAIT seconds."
-        return 1
+        if [ "$started_ok" = false ]; then
+            log "ERROR: PostgreSQL did not become ready within $MAX_WAIT seconds."
+            return 1
+        fi
+        return 0
     fi
 }
 
 ##############################################################################
-# STOP POSTGRES
+# STOP
 ##############################################################################
 
 stop_postgres() {
     # If not running, do nothing
-    if ! is_postgres_ready; then
+    if ! psql_check; then
         log "PostgreSQL is not running."
         return 0
     fi
@@ -108,17 +142,21 @@ stop_postgres() {
     log "Stopping PostgreSQL..."
     sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" stop
 
-    # Short wait for graceful shutdown
+    stopped_ok=false
     for i in $(seq 1 $MAX_WAIT); do
-        if ! is_postgres_ready; then
+        if ! psql_check; then
             log "PostgreSQL stopped successfully."
-            return 0
+            stopped_ok=true
+            break
         fi
         sleep 1
     done
 
-    log "ERROR: PostgreSQL did not stop within $MAX_WAIT seconds."
-    return 1
+    if [ "$stopped_ok" = false ]; then
+        log "ERROR: PostgreSQL did not stop within $MAX_WAIT seconds."
+        return 1
+    fi
+    return 0
 }
 
 ##############################################################################
