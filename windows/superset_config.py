@@ -1,3 +1,9 @@
+import os
+import logging
+from flask_appbuilder.security.manager import AUTH_DB
+
+SUPERSET_HOME = os.environ.get("SUPERSET_HOME", "/root/tools/superset")
+
 # Database Configuration
 SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:postgres@localhost/superset'
 
@@ -31,16 +37,16 @@ CELERY_CONFIG = CeleryConfig
 ENABLE_CORS = False
 
 # Logging Configuration
-import logging
-from flask_appbuilder.security.manager import AUTH_DB
 
 LOG_FORMAT = '%(asctime)s:%(levelname)s:%(name)s:%(message)s'
 LOG_LEVEL = logging.DEBUG
 
 # Enable time-based log rotation
+LOG_DIR = os.path.join(SUPERSET_HOME, "logs")
+FILENAME = os.path.join(LOG_DIR, "superset.log")
 ENABLE_TIME_ROTATE = True
-TIME_ROTATE_LOG_LEVEL = logging.DEBUG
-FILENAME = '/root/superset/logs/superset.log'
+TIME_ROTATE_LOG_LEVEL = "INFO"
+TIME_ROTATE_LOG_FILE = FILENAME
 ROLLOVER = 'midnight'
 INTERVAL = 1
 BACKUP_COUNT = 5
