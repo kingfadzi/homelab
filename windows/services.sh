@@ -50,7 +50,6 @@ log() {
 }
 
 psql_check() {
-    # If we can do psql -c '\q', Postgres is up
     su postgres -c "psql --host=$PG_HOST --port=$PG_PORT --username=postgres -c '\q'" 2>/dev/null
 }
 
@@ -370,28 +369,34 @@ stop_super_productivity() {
 start_all() {
     log "Starting all services..."
 
-    # 1) Postgres must succeed
+    # 1) Postgres must be initialized
+    if [ ! -f "$POSTGRES_DATA_DIR/PG_VERSION" ]; then
+        log "ERROR: PostgreSQL not initialized. Run: services.sh init postgres"
+        return 1
+    fi
+
+    # 2) Postgres must succeed
     start_postgres || {
         log "ERROR: Cannot continue. Postgres is required."
         return 1
     }
 
-    # 2) Redis must succeed
+    # 3) Redis must succeed
     start_redis || {
         log "ERROR: Cannot continue. Redis is required."
         return 1
     }
 
-    # 3) AFFiNE
+    # 4) AFFiNE
     start_affine || return 1
 
-    # 4) Metabase
+    # 5) Metabase
     start_metabase || return 1
 
-    # 5) Superset
+    # 6) Superset
     start_superset || return 1
 
-    # 6) Super Productivity
+    # 7) Super Productivity
     start_super_productivity || return 1
 
     log "All services started."
@@ -410,10 +415,14 @@ stop_all() {
 }
 
 ##############################################################################
-# RESTART (Stop then Start)
+# RESTART (Stop then Start) - Illegal if Postgres Not Init
 ##############################################################################
 
 restart_postgres() {
+    if [ ! -f "$POSTGRES_DATA_DIR/PG_VERSION" ]; then
+        log "ERROR: Cannot restart PostgreSQL. Not initialized."
+        return 1
+    fi
     stop_postgres
     start_postgres
 }
@@ -445,6 +454,13 @@ restart_super_productivity() {
 
 restart_all() {
     log "Restarting all services..."
+
+    # If Postgres isn't initialized, bail
+    if [ ! -f "$POSTGRES_DATA_DIR/PG_VERSION" ]; then
+        log "ERROR: Cannot restart all. PostgreSQL not initialized."
+        return 1
+    fi
+
     stop_all
     start_all
 }
