@@ -347,6 +347,9 @@ init_superset() {
         return 1
     fi
 
+    export FLASK_APP=superset
+    export SUPERSET_CONFIG_PATH="$SUPERSET_CONFIG"
+
     log "Initializing Superset..."
 
     # 1) Migrate the DB (create tables, etc.)
