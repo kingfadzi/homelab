@@ -39,7 +39,7 @@ export MB_DB_HOST="localhost"
 
 
 # Superset
-SUPERSET_HOME="/root/superset"
+SUPERSET_HOME="/root/tools/superset"
 SUPERSET_CONFIG="$SUPERSET_HOME/superset_config.py"
 SUPERSET_LOG_DIR="$SUPERSET_HOME/logs"
 SUPERSET_PORT="8099"
@@ -370,7 +370,7 @@ init_superset() {
     superset init
 
     # Create sentinel file so 'start_superset' knows we're initialized
-    touch /root/tools/superset/.superset_init_done
+    touch "$SUPERSET_HOME"/.superset_init_done
 
     log "Superset initialization complete."
     return 0
@@ -394,7 +394,7 @@ start_superset() {
         return 1
     fi
 
-    if [ ! -f "/root/tools/superset/.superset_init_done" ]; then
+    if [ ! -f "$SUPERSET_HOME/.superset_init_done" ]; then
         log "ERROR: Superset not initialized. Run: services.sh init superset"
         return 1
     fi

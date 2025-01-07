@@ -3,8 +3,9 @@ FROM almalinux:8
 ENV LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8 \
     PYTHONUNBUFFERED=1 \
-    SUPERSET_HOME="/root/superset" \
-    SUPERSET_CONFIG_PATH="/root/superset/superset_config.py"
+    SUPERSET_HOME="/root/tools/superset" \
+    SUPERSET_CONFIG_PATH="/root/tools/superset/superset_config.py" \
+    METABASE_HOME="/root/tools/metabase"
 
 # 1) Update and install base packages
 RUN dnf -y update && \
@@ -102,7 +103,7 @@ RUN mkdir -p "$SUPERSET_HOME/logs"
 COPY superset_config.py "$SUPERSET_HOME/superset_config.py"
 
 # 1) Create a Metabase folder
-RUN mkdir -p /root/tools/metabase
+RUN mkdir -p "$METABASE_HOME/logs"
 
 # 2) Download Metabase v0.52.4 jar
 RUN cd /root/tools/metabase && \
