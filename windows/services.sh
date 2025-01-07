@@ -69,24 +69,32 @@ function wait_for_redis {
 ##############################################################################
 
 function start_postgres {
+    local INITDB_BIN="/usr/pgsql-13/bin/initdb"
+    local PGCTL_BIN="/usr/pgsql-13/bin/pg_ctl"
+
+    # If the DB isn't initialized
     if [ ! -f "$POSTGRES_DATA_DIR/PG_VERSION" ]; then
         log "PostgreSQL not initialized. Initializing..."
-        sudo -u postgres "$POSTGRES_SETUP_BIN" initdb
+
+        # Initialize manually (instead of postgresql-13-setup)
+        sudo -u postgres "$INITDB_BIN" -D "$POSTGRES_DATA_DIR"
 
         log "Starting PostgreSQL (first time)..."
-        sudo -u postgres pg_ctl -D "$POSTGRES_DATA_DIR" start -l "$POSTGRES_LOG_DIR/$POSTGRES_LOGFILE_NAME"
+        sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" start -l "$POSTGRES_LOG_DIR/$POSTGRES_LOGFILE_NAME"
         wait_for_postgres
 
         log "Setting 'postgres' password to 'postgres'..."
         sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
 
-        sudo -u postgres pg_ctl -D "$POSTGRES_DATA_DIR" stop
+        # Stop after init
+        sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" stop
         log "Initialization done."
     fi
 
+    # Start if not running
     if ! pg_isready -h "$POSTGRES_SOCKET_DIR" &>/dev/null; then
         log "Starting PostgreSQL..."
-        sudo -u postgres pg_ctl -D "$POSTGRES_DATA_DIR" start -l "$POSTGRES_LOG_DIR/$POSTGRES_LOGFILE_NAME"
+        sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" start -l "$POSTGRES_LOG_DIR/$POSTGRES_LOGFILE_NAME"
         wait_for_postgres
         if ! pg_isready -h "$POSTGRES_SOCKET_DIR" &>/dev/null; then
             log "ERROR: PostgreSQL failed to start."
@@ -97,6 +105,7 @@ function start_postgres {
         log "PostgreSQL is already running."
     fi
 }
+
 
 function start_redis {
     if ! redis-cli ping &>/dev/null; then
