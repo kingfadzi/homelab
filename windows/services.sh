@@ -6,9 +6,7 @@
 
 LOG_FILE="/var/log/services.log"
 
-# ----------------------
-# POSTGRES CONFIG
-# ----------------------
+# Postgres
 POSTGRES_DATA_DIR="/var/lib/pgsql/13/data"
 POSTGRES_LOG_DIR="/var/lib/logs"
 POSTGRES_LOGFILE_NAME="postgres.log"
@@ -18,57 +16,45 @@ PG_HOST="127.0.0.1"
 PG_PORT="5432"
 PG_MAX_WAIT=10
 
-# ----------------------
-# REDIS CONFIG
-# ----------------------
+# Redis
 REDIS_CONF_FILE="/etc/redis.conf"
-REDIS_PORT="6379"
 
-# ----------------------
-# AFFiNE CONFIG
-# ----------------------
+# AFFiNE
 AFFINE_HOME="/root/tools/affinity-main"
 AFFINE_LOG_DIR="$AFFINE_HOME/logs"
 AFFINE_PORT="3010"
 
-# ----------------------
-# METABASE CONFIG
-# ----------------------
+# Metabase
 METABASE_HOME="/root/tools/metabase"
 METABASE_LOG_DIR="$METABASE_HOME/logs"
 METABASE_PORT="3000"
 METABASE_JAR="metabase.jar"
 
-# ----------------------
-# SUPERSET CONFIG
-# ----------------------
+# Superset
 SUPERSET_HOME="/root/superset"
 SUPERSET_CONFIG="$SUPERSET_HOME/superset_config.py"
 SUPERSET_LOG_DIR="$SUPERSET_HOME/logs"
 SUPERSET_PORT="8099"
 
-# ----------------------
-# SUPER PRODUCTIVITY CONFIG
-# ----------------------
+# Super Productivity
 SUPER_PROD_HOME="/root/tools/super-productivity-9.0.7/dist/browser"
 SUPER_PROD_LOG_DIR="$SUPER_PROD_HOME/logs"
 SUPER_PROD_PORT="8088"
 
 ##############################################################################
-# LOGGING & UTILS
+# LOGGING & HELPERS
 ##############################################################################
 
 log() {
     echo "$(date +'%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
 }
 
-# Quick "psql" test to see if Postgres is ready
 psql_check() {
     su postgres -c "psql --host=$PG_HOST --port=$PG_PORT --username=postgres -c '\q'" 2>/dev/null
 }
 
 ##############################################################################
-# PERMISSIONS (Postgres)
+# POSTGRES INIT / START / STOP
 ##############################################################################
 
 ensure_permissions() {
@@ -80,10 +66,6 @@ ensure_permissions() {
     chown postgres:postgres "$POSTGRES_LOG_DIR"
 }
 
-##############################################################################
-# INIT POSTGRES
-##############################################################################
-
 init_postgres() {
     ensure_permissions
     if [ -f "$POSTGRES_DATA_DIR/PG_VERSION" ]; then
@@ -94,20 +76,20 @@ init_postgres() {
     log "Initializing PostgreSQL..."
     sudo -u postgres "$INITDB_BIN" -D "$POSTGRES_DATA_DIR"
 
-    # Basic config for remote access
+    # Basic remote access config
     log "Configuring PostgreSQL for remote access..."
     su postgres -c "echo \"listen_addresses = '*'\" >> \"$POSTGRES_DATA_DIR/postgresql.conf\""
     su postgres -c "echo \"host all all 0.0.0.0/0 md5\" >> \"$POSTGRES_DATA_DIR/pg_hba.conf\""
 
-    # Start once, set password, stop
-    log "Starting PostgreSQL for init..."
+    # Temporary start to set password
+    log "Starting PostgreSQL (init) ..."
     sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" \
         start -l "$POSTGRES_LOG_DIR/$POSTGRES_LOGFILE_NAME"
 
     local init_ok=false
     for i in $(seq 1 $PG_MAX_WAIT); do
         if psql_check; then
-            log "PostgreSQL (init) is up; setting password 'postgres'..."
+            log "PostgreSQL init: setting password 'postgres'..."
             su postgres -c "psql --host=$PG_HOST --port=$PG_PORT --username=postgres -c \"ALTER USER postgres WITH PASSWORD 'postgres';\""
             init_ok=true
             break
@@ -124,13 +106,9 @@ init_postgres() {
     log "Stopping after init..."
     sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" stop
     sleep 2
-    log "Initialization complete. Ready to start normally."
+    log "Initialization complete."
     return 0
 }
-
-##############################################################################
-# START / STOP POSTGRES
-##############################################################################
 
 start_postgres() {
     ensure_permissions
@@ -140,7 +118,6 @@ start_postgres() {
         return 1
     fi
 
-    # If already running
     if psql_check; then
         log "PostgreSQL is already running."
         return 0
@@ -160,7 +137,10 @@ start_postgres() {
         sleep 1
     done
 
-    [ "$started_ok" = false ] && log "ERROR: Postgres not ready after $PG_MAX_WAIT seconds." && return 1
+    if [ "$started_ok" = false ]; then
+        log "ERROR: Postgres not ready after $PG_MAX_WAIT seconds."
+        return 1
+    fi
     return 0
 }
 
@@ -182,7 +162,10 @@ stop_postgres() {
         fi
         sleep 1
     done
-    [ "$stopped_ok" = false ] && log "ERROR: Postgres not stopped within $PG_MAX_WAIT seconds." && return 1
+    if [ "$stopped_ok" = false ]; then
+        log "ERROR: Postgres did not stop within $PG_MAX_WAIT seconds."
+        return 1
+    fi
     return 0
 }
 
@@ -198,7 +181,7 @@ start_redis() {
 
     log "Starting Redis..."
     redis-server "$REDIS_CONF_FILE" &
-    sleep 1  # short wait, optional
+    sleep 1
 
     if ! pgrep -f "redis-server" &>/dev/null; then
         log "ERROR: Redis failed to start."
@@ -212,7 +195,6 @@ stop_redis() {
     log "Stopping Redis..."
     pkill -f "redis-server"
     sleep 1
-
     if pgrep -f "redis-server" &>/dev/null; then
         log "ERROR: Redis did not stop."
         return 1
@@ -226,13 +208,17 @@ stop_redis() {
 ##############################################################################
 
 start_affine() {
+    if [ ! -d "$AFFINE_HOME" ]; then
+        log "ERROR: AFFiNE home dir not found: $AFFINE_HOME"
+        return 1
+    fi
     if ss -tnlp | grep ":$AFFINE_PORT" &>/dev/null; then
         log "AFFiNE is already running."
         return 0
     fi
 
     log "Starting AFFiNE..."
-    cd "$AFFINE_HOME" || exit
+    cd "$AFFINE_HOME" || return 1
     nohup sh -c 'node ./scripts/self-host-predeploy && node --loader ./scripts/loader.js ./dist/index.js' \
       > "$AFFINE_LOG_DIR/affine_log.log" 2>&1 &
     sleep 5
@@ -262,13 +248,17 @@ stop_affine() {
 ##############################################################################
 
 start_metabase() {
+    if [ ! -d "$METABASE_HOME" ]; then
+        log "ERROR: Metabase home dir not found: $METABASE_HOME"
+        return 1
+    fi
     if ss -tnlp | grep ":$METABASE_PORT" &>/dev/null; then
         log "Metabase is already running."
         return 0
     fi
 
     log "Starting Metabase..."
-    cd "$METABASE_HOME" || exit
+    cd "$METABASE_HOME" || return 1
     nohup java -jar "$METABASE_JAR" \
       > "$METABASE_LOG_DIR/metabase_log.log" 2>&1 &
     sleep 5
@@ -298,6 +288,10 @@ stop_metabase() {
 ##############################################################################
 
 start_superset() {
+    if [ ! -d "$SUPERSET_HOME" ]; then
+        log "ERROR: Superset home dir not found: $SUPERSET_HOME"
+        return 1
+    fi
     if ss -tnlp | grep ":$SUPERSET_PORT" &>/dev/null; then
         log "Superset is already running."
         return 0
@@ -305,7 +299,7 @@ start_superset() {
 
     log "Starting Superset..."
     export SUPERSET_CONFIG_PATH="$SUPERSET_CONFIG"
-    cd "$SUPERSET_HOME" || exit
+    cd "$SUPERSET_HOME" || return 1
     nohup superset run -p "$SUPERSET_PORT" -h 0.0.0.0 --with-threads --reload --debugger \
       > "$SUPERSET_LOG_DIR/superset_log.log" 2>&1 &
     sleep 5
@@ -335,13 +329,17 @@ stop_superset() {
 ##############################################################################
 
 start_super_productivity() {
+    if [ ! -d "$SUPER_PROD_HOME" ]; then
+        log "ERROR: Super Productivity dir not found: $SUPER_PROD_HOME"
+        return 1
+    fi
     if ss -tnlp | grep ":$SUPER_PROD_PORT" &>/dev/null; then
         log "Super Productivity is already running."
         return 0
     fi
 
     log "Starting Super Productivity..."
-    cd "$SUPER_PROD_HOME" || exit
+    cd "$SUPER_PROD_HOME" || return 1
     nohup http-server -p "$SUPER_PROD_PORT" \
       > "$SUPER_PROD_LOG_DIR/super_prod_log.log" 2>&1 &
     sleep 5
@@ -367,18 +365,38 @@ stop_super_productivity() {
 }
 
 ##############################################################################
-# START ALL / STOP ALL
+# START ALL / STOP ALL (Short-Circuit on Failure)
 ##############################################################################
 
 start_all() {
     log "Starting all services..."
-    start_postgres
-    start_redis
-    start_affine
-    start_metabase
-    start_superset
-    start_super_productivity
+
+    # 1) Postgres must succeed
+    start_postgres || {
+        log "ERROR: Cannot continue. Postgres is required."
+        return 1
+    }
+
+    # 2) Redis must succeed
+    start_redis || {
+        log "ERROR: Cannot continue. Redis is required."
+        return 1
+    }
+
+    # 3) AFFiNE
+    start_affine || return 1
+
+    # 4) Metabase
+    start_metabase || return 1
+
+    # 5) Superset
+    start_superset || return 1
+
+    # 6) Super Productivity
+    start_super_productivity || return 1
+
     log "All services started."
+    return 0
 }
 
 stop_all() {
