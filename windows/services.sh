@@ -50,6 +50,7 @@ log() {
 }
 
 psql_check() {
+    # If we can do psql -c '\q', Postgres is up
     su postgres -c "psql --host=$PG_HOST --port=$PG_PORT --username=postgres -c '\q'" 2>/dev/null
 }
 
@@ -76,12 +77,10 @@ init_postgres() {
     log "Initializing PostgreSQL..."
     sudo -u postgres "$INITDB_BIN" -D "$POSTGRES_DATA_DIR"
 
-    # Basic remote access config
     log "Configuring PostgreSQL for remote access..."
     su postgres -c "echo \"listen_addresses = '*'\" >> \"$POSTGRES_DATA_DIR/postgresql.conf\""
     su postgres -c "echo \"host all all 0.0.0.0/0 md5\" >> \"$POSTGRES_DATA_DIR/pg_hba.conf\""
 
-    # Temporary start to set password
     log "Starting PostgreSQL (init) ..."
     sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" \
         start -l "$POSTGRES_LOG_DIR/$POSTGRES_LOGFILE_NAME"
@@ -365,7 +364,7 @@ stop_super_productivity() {
 }
 
 ##############################################################################
-# START ALL / STOP ALL (Short-Circuit on Failure)
+# START/STOP ALL (Short-Circuit on Failure)
 ##############################################################################
 
 start_all() {
@@ -411,6 +410,46 @@ stop_all() {
 }
 
 ##############################################################################
+# RESTART (Stop then Start)
+##############################################################################
+
+restart_postgres() {
+    stop_postgres
+    start_postgres
+}
+
+restart_redis() {
+    stop_redis
+    start_redis
+}
+
+restart_affine() {
+    stop_affine
+    start_affine
+}
+
+restart_metabase() {
+    stop_metabase
+    start_metabase
+}
+
+restart_superset() {
+    stop_superset
+    start_superset
+}
+
+restart_super_productivity() {
+    stop_super_productivity
+    start_super_productivity
+}
+
+restart_all() {
+    log "Restarting all services..."
+    stop_all
+    start_all
+}
+
+##############################################################################
 # MENU
 ##############################################################################
 
@@ -445,7 +484,19 @@ case "$1" in
             *) echo "Usage: $0 stop {all|postgres|redis|affine|metabase|superset|super-productivity}" ;;
         esac
         ;;
+    restart)
+        case "$2" in
+            all) restart_all ;;
+            postgres) restart_postgres ;;
+            redis) restart_redis ;;
+            affine) restart_affine ;;
+            metabase) restart_metabase ;;
+            superset) restart_superset ;;
+            super-productivity) restart_super_productivity ;;
+            *) echo "Usage: $0 restart {all|postgres|redis|affine|metabase|superset|super-productivity}" ;;
+        esac
+        ;;
     *)
-        echo "Usage: $0 {init|start|stop} {service|all}"
+        echo "Usage: $0 {init|start|stop|restart} {service|all}"
         ;;
 esac
