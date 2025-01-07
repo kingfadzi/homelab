@@ -24,6 +24,8 @@ RUN dnf -y update && \
         xz-devel \
         tar \
         java-21-openjdk \
+        cronie \
+        logrotate \
         sudo \
         iproute \
     && dnf clean all
@@ -68,6 +70,29 @@ RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 && \
 # 7) Install a specific version of Apache Superset (4.1.0rc3) with Postgres extras
 RUN pip3 install --upgrade setuptools wheel && \
     pip3 install "apache-superset[postgres]==4.1.0rc3"
+
+# Example lines in your Dockerfile
+RUN dnf -y install logrotate cronie && \
+    dnf clean all
+
+# Copy a custom logrotate config
+COPY our-logs.conf /etc/logrotate.d/our-logs
+
+# Create needed directories for logs
+RUN mkdir -p /var/lib/logs && \
+    mkdir -p /var/log/redis
+
+RUN echo '#!/bin/bash\n/usr/sbin/logrotate /etc/logrotate.conf' > /etc/cron.daily/logrotate-custom && \
+    chmod +x /etc/cron.daily/logrotate-custom
+
+RUN mkdir -p /mnt/pgdb_backups
+
+# Copy the backup script
+COPY backup_postgres.sh /usr/local/bin/backup_postgres.sh
+RUN chmod +x /usr/local/bin/backup_postgres.sh
+
+RUN echo '#!/bin/bash\n/usr/local/bin/backup_postgres.sh' > /etc/cron.daily/pgbackup && \
+    chmod +x /etc/cron.daily/pgbackup
 
 # 8) Create Superset directory (matching the script)
 RUN mkdir -p "$SUPERSET_HOME/logs"

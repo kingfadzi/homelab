@@ -100,12 +100,16 @@ init_postgres() {
     for i in $(seq 1 $PG_MAX_WAIT); do
         if psql_check; then
             log "PostgreSQL init: setting password 'postgres'..."
-            # 1) Set password
             su postgres -c "psql -c \"ALTER USER postgres WITH PASSWORD 'postgres';\""
 
-            # 2) Create superset database if not exists
-            log "Creating 'superset' database if not exists..."
+            log "Creating 'superset' DB if not exists..."
             su postgres -c "psql -tc \"SELECT 1 FROM pg_database WHERE datname = 'superset'\" | grep -q 1 || psql -c \"CREATE DATABASE superset WITH OWNER postgres;\""
+
+            log "Creating 'metabasedb' DB if not exists..."
+            su postgres -c "psql -tc \"SELECT 1 FROM pg_database WHERE datname = 'metabasedb'\" | grep -q 1 || psql -c \"CREATE DATABASE metabasedb WITH OWNER postgres;\""
+
+            log "Creating 'affine' DB if not exists..."
+            su postgres -c "psql -tc \"SELECT 1 FROM pg_database WHERE datname = 'affine'\" | grep -q 1 || psql -c \"CREATE DATABASE affine WITH OWNER postgres;\""
 
             init_ok=true
             break

@@ -43,7 +43,7 @@ TIME_ROTATE_LOG_LEVEL = logging.DEBUG
 FILENAME = '/root/superset/logs/superset.log'
 ROLLOVER = 'midnight'
 INTERVAL = 1
-BACKUP_COUNT = 30
+BACKUP_COUNT = 5
 
 # Feature Flags (optional, but recommended for better performance)
 FEATURE_FLAGS = {
