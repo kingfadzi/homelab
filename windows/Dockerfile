@@ -113,6 +113,6 @@ COPY services.sh /usr/local/bin/services.sh
 RUN chmod +x /usr/local/bin/services.sh
 
 # Expose Postgres (5432), Redis (6379), and Superset (8099)
-EXPOSE 5432 6379 8099 3000
+EXPOSE 5432 6379 8099 3000 3010 8088
 
 CMD ["/bin/bash"]
