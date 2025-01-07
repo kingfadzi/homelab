@@ -70,7 +70,7 @@ RUN pip3 install --upgrade setuptools wheel && \
     pip3 install "apache-superset[postgres]==4.1.0rc3"
 
 # 8) Create Superset directory (matching the script)
-RUN mkdir -p "$SUPERSET_HOME"
+RUN mkdir -p "$SUPERSET_HOME/logs"
 
 # Copy your custom superset_config.py into the container
 # Make sure superset_config.py is in the same dir as your Dockerfile

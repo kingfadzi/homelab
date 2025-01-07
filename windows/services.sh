@@ -299,31 +299,41 @@ stop_metabase() {
 }
 
 ##############################################################################
-# SUPERSET
+# HELPER: Check if Redis is running
+##############################################################################
+redis_check() {
+    # Return 0 if redis-server is found, else non-zero
+    pgrep -f "redis-server" &>/dev/null
+}
+
+##############################################################################
+# SUPERTSET START / STOP
 ##############################################################################
 
 start_superset() {
-    # Prevent starting if Postgres is not initialized
-    if [ ! -f "$POSTGRES_DATA_DIR/PG_VERSION" ]; then
-        log "ERROR: Postgres is not initialized; cannot start Superset."
+    # Ensure Postgres is running
+    if ! psql_check; then
+        log "ERROR: Postgres is not running; cannot start Superset."
         return 1
     fi
 
-    # (Optionally) also prevent if Postgres isn't running:
-    # if ! psql_check; then
-    #     log "ERROR: Postgres is not running; cannot start Superset."
-    #     return 1
-    # fi
+    # Ensure Redis is running
+    if ! redis_check; then
+        log "ERROR: Redis is not running; cannot start Superset."
+        return 1
+    fi
 
+    # Create dirs if missing
     ensure_dir "$SUPERSET_HOME"
     ensure_dir "$SUPERSET_LOG_DIR"
 
+    # Check if Superset is already up
     if ss -tnlp | grep ":$SUPERSET_PORT" &>/dev/null; then
         log "Superset is already running."
         return 0
     fi
 
-    # Export environment vars
+    # Export needed env vars
     export FLASK_APP=superset
     export SUPERSET_CONFIG_PATH="$SUPERSET_CONFIG"
 

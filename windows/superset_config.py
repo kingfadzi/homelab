@@ -40,7 +40,7 @@ LOG_LEVEL = logging.DEBUG
 # Enable time-based log rotation
 ENABLE_TIME_ROTATE = True
 TIME_ROTATE_LOG_LEVEL = logging.DEBUG
-FILENAME = '/path/to/your/superset.log'
+FILENAME = '/root/superset/logs/superset.log'
 ROLLOVER = 'midnight'
 INTERVAL = 1
 BACKUP_COUNT = 30
