@@ -6,28 +6,34 @@
 
 LOG_FILE="/var/log/services.log"
 
-POSTGRES_DATA_DIR="/var/lib/pgsql/data"
+# PostgreSQL 13 paths
+POSTGRES_DATA_DIR="/var/lib/pgsql/13/data"
 POSTGRES_SOCKET_DIR="/var/lib/pgsql/socket"
-POSTGRES_LOG_DIR="/var/lib/logs"
+POSTGRES_LOG_DIR="/var/lib/logs"       # Adjust if you want logs elsewhere
 POSTGRES_LOGFILE_NAME="postgres.log"
 POSTGRES_SETUP_BIN="/usr/pgsql-13/bin/postgresql-13-setup"
 
-REDIS_CONF_FILE="/etc/redis/redis.conf"
+# Redis
+REDIS_CONF_FILE="/etc/redis.conf"
 
+# AFFiNE
 AFFINE_HOME="/root/tools/affinity-main"
 AFFINE_LOG_DIR="$AFFINE_HOME/logs"
 AFFINE_PORT="3010"
 
+# Metabase
 METABASE_HOME="/root/tools/metabase"
 METABASE_LOG_DIR="$METABASE_HOME/logs"
 METABASE_PORT="3000"
 METABASE_JAR="metabase.jar"
 
+# Superset
 SUPERSET_HOME="/root/superset"
 SUPERSET_CONFIG="$SUPERSET_HOME/superset_config.py"
 SUPERSET_LOG_DIR="$SUPERSET_HOME/logs"
 SUPERSET_PORT="8099"
 
+# Super Productivity
 SUPER_PROD_HOME="/root/tools/super-productivity-9.0.7/dist/browser"
 SUPER_PROD_LOG_DIR="$SUPER_PROD_HOME/logs"
 SUPER_PROD_PORT="8088"
@@ -63,21 +69,21 @@ function wait_for_redis {
 ##############################################################################
 
 function start_postgres {
-    # If DB not initialized, do so, then set postgres password
     if [ ! -f "$POSTGRES_DATA_DIR/PG_VERSION" ]; then
         log "PostgreSQL not initialized. Initializing..."
         sudo -u postgres "$POSTGRES_SETUP_BIN" initdb
+
         log "Starting PostgreSQL (first time)..."
         sudo -u postgres pg_ctl -D "$POSTGRES_DATA_DIR" start -l "$POSTGRES_LOG_DIR/$POSTGRES_LOGFILE_NAME"
         wait_for_postgres
+
         log "Setting 'postgres' password to 'postgres'..."
         sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
-        # Stop after init so the final 'start' block below re-launches it
+
         sudo -u postgres pg_ctl -D "$POSTGRES_DATA_DIR" stop
         log "Initialization done."
     fi
 
-    # Start normally if not running
     if ! pg_isready -h "$POSTGRES_SOCKET_DIR" &>/dev/null; then
         log "Starting PostgreSQL..."
         sudo -u postgres pg_ctl -D "$POSTGRES_DATA_DIR" start -l "$POSTGRES_LOG_DIR/$POSTGRES_LOGFILE_NAME"
