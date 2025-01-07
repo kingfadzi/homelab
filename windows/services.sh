@@ -303,6 +303,18 @@ stop_metabase() {
 ##############################################################################
 
 start_superset() {
+    # Prevent starting if Postgres is not initialized
+    if [ ! -f "$POSTGRES_DATA_DIR/PG_VERSION" ]; then
+        log "ERROR: Postgres is not initialized; cannot start Superset."
+        return 1
+    fi
+
+    # (Optionally) also prevent if Postgres isn't running:
+    # if ! psql_check; then
+    #     log "ERROR: Postgres is not running; cannot start Superset."
+    #     return 1
+    # fi
+
     ensure_dir "$SUPERSET_HOME"
     ensure_dir "$SUPERSET_LOG_DIR"
 
@@ -311,11 +323,15 @@ start_superset() {
         return 0
     fi
 
-    log "Starting Superset..."
+    # Export environment vars
+    export FLASK_APP=superset
     export SUPERSET_CONFIG_PATH="$SUPERSET_CONFIG"
+
+    log "Starting Superset..."
     cd "$SUPERSET_HOME" || return 1
     nohup superset run -p "$SUPERSET_PORT" -h 0.0.0.0 --with-threads --reload --debugger \
       > "$SUPERSET_LOG_DIR/superset_log.log" 2>&1 &
+
     sleep 5
 
     if ! ss -tnlp | grep ":$SUPERSET_PORT" &>/dev/null; then
