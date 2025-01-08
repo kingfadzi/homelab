@@ -11,7 +11,6 @@ usage() {
   exit 1
 }
 
-# Require exactly 2 arguments
 if [ $# -ne 2 ]; then
   echo "ERROR: You must specify exactly two directories (data + backups)."
   usage
@@ -26,20 +25,28 @@ CONTAINER_POSTGRES_BACKUPS_DIR="/mnt/pgdb_backups"
 echo "Using host Postgres data dir: $HOST_POSTGRES_DATA_DIR"
 echo "Using host Postgres backups dir: $HOST_POSTGRES_BACKUPS_DIR"
 
-# Fail if the data dir doesn't exist
 if [ ! -d "$HOST_POSTGRES_DATA_DIR" ]; then
   echo "ERROR: Directory '$HOST_POSTGRES_DATA_DIR' does not exist."
   usage
 fi
 
-# Fail if the backups dir doesn't exist
 if [ ! -d "$HOST_POSTGRES_BACKUPS_DIR" ]; then
   echo "ERROR: Directory '$HOST_POSTGRES_BACKUPS_DIR' does not exist."
   usage
 fi
 
+# Build the Docker image
 docker build -t "$IMAGE_NAME" .
 
+# If a container by this name exists, remove it
+EXISTING_CONTAINER_ID="$(docker ps -aq -f name="$CONTAINER_NAME" 2>/dev/null || true)"
+
+if [ -n "$EXISTING_CONTAINER_ID" ]; then
+  echo "A container named '$CONTAINER_NAME' already exists. Removing it..."
+  docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+fi
+
+# Run the new container
 docker run -d \
   --name "$CONTAINER_NAME" \
   -p 5432:5432 \
