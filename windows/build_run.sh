@@ -55,3 +55,4 @@ docker run -d \
   tail -f /dev/null
 
 echo "Container '$CONTAINER_NAME' started with volumes mounted."
+
