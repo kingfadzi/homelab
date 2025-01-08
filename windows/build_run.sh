@@ -5,19 +5,20 @@ IMAGE_NAME="dev-environment"
 CONTAINER_NAME="dev-environment"
 
 usage() {
-  echo "Usage: $0 [POSTGRES_DATA_DIR [POSTGRES_BACKUPS_DIR]]"
+  echo "Usage: $0 <POSTGRES_DATA_DIR> <POSTGRES_BACKUPS_DIR>"
   echo "Example: $0 /home/user/pgdata /home/user/pgbackups"
-  echo "Defaults to ./postgres_data and ./postgres_backups if not provided."
+  echo "Both arguments are required, and the specified directories must already exist."
   exit 1
 }
 
-if [ $# -gt 2 ]; then
-  echo "Too many arguments."
+# Require exactly 2 arguments
+if [ $# -ne 2 ]; then
+  echo "ERROR: You must specify exactly two directories (data + backups)."
   usage
 fi
 
-HOST_POSTGRES_DATA_DIR="${1:-$(pwd)/postgres_data}"
-HOST_POSTGRES_BACKUPS_DIR="${2:-$(pwd)/postgres_backups}"
+HOST_POSTGRES_DATA_DIR="$1"
+HOST_POSTGRES_BACKUPS_DIR="$2"
 
 CONTAINER_POSTGRES_DATA_DIR="/var/lib/pgsql/13/data"
 CONTAINER_POSTGRES_BACKUPS_DIR="/mnt/pgdb_backups"
@@ -25,18 +26,16 @@ CONTAINER_POSTGRES_BACKUPS_DIR="/mnt/pgdb_backups"
 echo "Using host Postgres data dir: $HOST_POSTGRES_DATA_DIR"
 echo "Using host Postgres backups dir: $HOST_POSTGRES_BACKUPS_DIR"
 
-# 1) FAIL if data dir doesn't exist
+# Fail if the data dir doesn't exist
 if [ ! -d "$HOST_POSTGRES_DATA_DIR" ]; then
-  echo "ERROR: Directory '$HOST_POSTGRES_DATA_DIR' not found or is not a directory."
-  echo "Please create it first or specify a valid path."
-  exit 1
+  echo "ERROR: Directory '$HOST_POSTGRES_DATA_DIR' does not exist."
+  usage
 fi
 
-# 2) FAIL if backups dir doesn't exist
+# Fail if the backups dir doesn't exist
 if [ ! -d "$HOST_POSTGRES_BACKUPS_DIR" ]; then
-  echo "ERROR: Directory '$HOST_POSTGRES_BACKUPS_DIR' not found or is not a directory."
-  echo "Please create it first or specify a valid path."
-  exit 1
+  echo "ERROR: Directory '$HOST_POSTGRES_BACKUPS_DIR' does not exist."
+  usage
 fi
 
 docker build -t "$IMAGE_NAME" .
@@ -55,4 +54,3 @@ docker run -d \
   tail -f /dev/null
 
 echo "Container '$CONTAINER_NAME' started with volumes mounted."
-
