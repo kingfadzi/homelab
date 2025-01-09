@@ -44,11 +44,6 @@ SUPERSET_CONFIG="$SUPERSET_HOME/superset_config.py"
 SUPERSET_LOG_DIR="$SUPERSET_HOME/logs"
 SUPERSET_PORT="8099"
 
-# Super Productivity
-SUPER_PROD_HOME="/root/tools/super-productivity-9.0.7/dist/browser"
-SUPER_PROD_LOG_DIR="$SUPER_PROD_HOME/logs"
-SUPER_PROD_PORT="8088"
-
 ##############################################################################
 # LOGGING & HELPERS
 ##############################################################################
@@ -426,6 +421,9 @@ start_superset() {
         return 0
     fi
 
+    cd $SUPERSET_HOME
+    source env/bin/activate
+
     # Export needed env vars
     export FLASK_APP=superset
     export SUPERSET_CONFIG_PATH="$SUPERSET_CONFIG"
@@ -458,45 +456,6 @@ stop_superset() {
         return 1
     fi
     log "Superset stopped."
-    return 0
-}
-
-##############################################################################
-# SUPER PRODUCTIVITY
-##############################################################################
-
-start_super_productivity() {
-    ensure_dir "$SUPER_PROD_HOME"
-    ensure_dir "$SUPER_PROD_LOG_DIR"
-
-    if ss -tnlp | grep ":$SUPER_PROD_PORT" &>/dev/null; then
-        log "Super Productivity is already running."
-        return 0
-    fi
-
-    log "Starting Super Productivity..."
-    cd "$SUPER_PROD_HOME" || return 1
-    nohup http-server -p "$SUPER_PROD_PORT" \
-      > "$SUPER_PROD_LOG_DIR/super_prod_log.log" 2>&1 &
-    sleep 5
-
-    if ! ss -tnlp | grep ":$SUPER_PROD_PORT" &>/dev/null; then
-        log "ERROR: Super Productivity failed to start."
-        return 1
-    fi
-    log "Super Productivity started."
-    return 0
-}
-
-stop_super_productivity() {
-    log "Stopping Super Productivity..."
-    pkill -f "http-server -p $SUPER_PROD_PORT"
-    sleep 1
-    if ss -tnlp | grep ":$SUPER_PROD_PORT" &>/dev/null; then
-        log "ERROR: Super Productivity did not stop."
-        return 1
-    fi
-    log "Super Productivity stopped."
     return 0
 }
 
@@ -534,16 +493,12 @@ start_all() {
     # 6) Superset
     start_superset || return 1
 
-    # 7) Super Productivity
-    start_super_productivity || return 1
-
     log "All services started."
     return 0
 }
 
 stop_all() {
     log "Stopping all services..."
-    stop_super_productivity
     stop_superset
     stop_metabase
     stop_affine
@@ -583,11 +538,6 @@ restart_metabase() {
 restart_superset() {
     stop_superset
     start_superset
-}
-
-restart_super_productivity() {
-    stop_super_productivity
-    start_super_productivity
 }
 
 restart_all() {
