@@ -242,10 +242,11 @@ start_affine() {
 
     # Ensure Postgres is running
     if ! psql_check; then
-        log "ERROR: Postgres is not running; cannot start Affine."
+        log "ERROR: Postgres is not running; cannot start AFFiNE."
         return 1
     fi
 
+    # Check if AFFiNE is already running
     if ss -tnlp | grep ":$AFFINE_PORT" &>/dev/null; then
         log "AFFiNE is already running."
         return 0
@@ -255,15 +256,20 @@ start_affine() {
     cd "$AFFINE_HOME" || return 1
     nohup sh -c 'node ./scripts/self-host-predeploy && node --loader ./scripts/loader.js ./dist/index.js' \
       > "$AFFINE_LOG_DIR/affine_log.log" 2>&1 &
-    sleep 5
 
-    if ! ss -tnlp | grep ":$AFFINE_PORT" &>/dev/null; then
-        log "ERROR: AFFiNE failed to start."
-        return 1
-    fi
-    log "AFFiNE started."
-    return 0
+    # Wait up to 30 seconds for AFFiNE to start
+    for i in {1..30}; do
+        if ss -tnlp | grep ":$AFFINE_PORT" &>/dev/null; then
+            log "AFFiNE started."
+            return 0
+        fi
+        sleep 1
+    done
+
+    log "ERROR: AFFiNE failed to start after 30 seconds."
+    return 1
 }
+
 
 stop_affine() {
     log "Stopping AFFiNE..."
@@ -291,6 +297,7 @@ start_metabase() {
         return 1
     fi
 
+    # Check if Metabase is already running
     if ss -tnlp | grep ":$METABASE_PORT" &>/dev/null; then
         log "Metabase is already running."
         return 0
@@ -300,14 +307,18 @@ start_metabase() {
     cd "$METABASE_HOME" || return 1
     nohup java -jar "$METABASE_JAR" \
       > "$METABASE_LOG_DIR/metabase_log.log" 2>&1 &
-    sleep 5
 
-    if ! ss -tnlp | grep ":$METABASE_PORT" &>/dev/null; then
-        log "ERROR: Metabase failed to start."
-        return 1
-    fi
-    log "Metabase started."
-    return 0
+    # Wait up to 30 seconds for Metabase to start
+    for i in {1..30}; do
+        if ss -tnlp | grep ":$METABASE_PORT" &>/dev/null; then
+            log "Metabase started."
+            return 0
+        fi
+        sleep 1
+    done
+
+    log "ERROR: Metabase failed to start after 30 seconds."
+    return 1
 }
 
 stop_metabase() {
@@ -424,15 +435,19 @@ start_superset() {
     nohup superset run -p "$SUPERSET_PORT" -h 0.0.0.0 --with-threads --reload --debugger \
       > "$SUPERSET_LOG_DIR/superset_log.log" 2>&1 &
 
-    sleep 5
+    # Wait up to 30 seconds for Superset to start
+    for i in {1..30}; do
+        if ss -tnlp | grep ":$SUPERSET_PORT" &>/dev/null; then
+            log "Superset started."
+            return 0
+        fi
+        sleep 1
+    done
 
-    if ! ss -tnlp | grep ":$SUPERSET_PORT" &>/dev/null; then
-        log "ERROR: Superset failed to start."
-        return 1
-    fi
-    log "Superset started."
-    return 0
+    log "ERROR: Superset failed to start after 30 seconds."
+    return 1
 }
+
 
 stop_superset() {
     log "Stopping Superset..."
