@@ -10,28 +10,44 @@ SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:postgres@localhost/superset'
 # Increase Row Limit to 1 Million
 ROW_LIMIT = 1000000
 
-# Redis Caching Configuration
-REDIS_HOST = 'localhost'
-REDIS_PORT = 6379
-REDIS_CELERY_DB = 0
-REDIS_RESULTS_DB = 1
-
+# Redis cache configuration
 CACHE_CONFIG = {
     'CACHE_TYPE': 'redis',
     'CACHE_DEFAULT_TIMEOUT': 300,
-    'CACHE_KEY_PREFIX': 'superset_',
-    'CACHE_REDIS_HOST': REDIS_HOST,
-    'CACHE_REDIS_PORT': REDIS_PORT,
-    'CACHE_REDIS_DB': REDIS_RESULTS_DB,
+    'CACHE_KEY_PREFIX': 'superset_results',
+    'CACHE_REDIS_URL': 'redis://localhost:6379/0'
 }
 
-# Use Redis for Celery as well
-class CeleryConfig:
-    BROKER_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_CELERY_DB}'
-    CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_CELERY_DB}'
-    CELERY_ANNOTATIONS = {'tasks.add': {'rate_limit': '10/s'}}
+# Filter state cache configuration
+FILTER_STATE_CACHE_CONFIG = {
+    'CACHE_TYPE': 'RedisCache',
+    'CACHE_DEFAULT_TIMEOUT': 86400,
+    'CACHE_KEY_PREFIX': 'superset_filter_cache',
+    'CACHE_REDIS_URL': 'redis://localhost:6379/0'
+}
+
+# Explore form data cache configuration
+EXPLORE_FORM_DATA_CACHE_CONFIG = {
+    'CACHE_TYPE': 'RedisCache',
+    'CACHE_DEFAULT_TIMEOUT': 86400,
+    'CACHE_KEY_PREFIX': 'superset_explore_form',
+    'CACHE_REDIS_URL': 'redis://localhost:6379/0'
+}
+
+# Results backend configuration
+RESULTS_BACKEND = RedisCache(
+    host='localhost',
+    port=6379,
+    key_prefix='superset_results'
+)
+
+# Celery configuration for task scheduling
+class CeleryConfig(object):
+    broker_url = 'redis://localhost:6379/0'
+    result_backend = 'redis://localhost:6379/0'
 
 CELERY_CONFIG = CeleryConfig
+
 
 # Disable CORS
 ENABLE_CORS = False
@@ -53,7 +69,7 @@ BACKUP_COUNT = 5
 
 # Feature Flags (optional, but recommended for better performance)
 FEATURE_FLAGS = {
-    'ENABLE_TEMPLATE_PROCESSING': True,
+    "ENABLE_SUPERSET_META_DB": True,
 }
 
 # Authentication Configuration (using database auth in this example)
@@ -61,3 +77,9 @@ AUTH_TYPE = AUTH_DB
 
 # Set a strong SECRET_KEY for security
 SECRET_KEY = 'YOUR_SECURE_SECRET_KEY_HERE'
+
+# Flask-WTF flag for CSRF
+WTF_CSRF_ENABLED = False
+WTF_CSRF_EXEMPT_LIST = ['*']
+WTF_CSRF_TIME_LIMIT = 60 * 60 * 24 * 365
+
