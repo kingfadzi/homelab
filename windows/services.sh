@@ -603,6 +603,58 @@ restart_all() {
 }
 
 ##############################################################################
+# STATUS FUNCTIONS
+##############################################################################
+
+status_postgres() {
+    if psql_check; then
+        log "PostgreSQL is running."
+    else
+        log "PostgreSQL is NOT running."
+    fi
+}
+
+status_redis() {
+    if pgrep -f "redis-server" &>/dev/null; then
+        log "Redis is running."
+    else
+        log "Redis is NOT running."
+    fi
+}
+
+status_affine() {
+    if ss -tnlp | grep ":$AFFINE_PORT" &>/dev/null; then
+        log "AFFiNE is running."
+    else
+        log "AFFiNE is NOT running."
+    fi
+}
+
+status_metabase() {
+    if ss -tnlp | grep ":$METABASE_PORT" &>/dev/null; then
+        log "Metabase is running."
+    else
+        log "Metabase is NOT running."
+    fi
+}
+
+status_superset() {
+    if ss -tnlp | grep ":$SUPERSET_PORT" &>/dev/null; then
+        log "Superset is running."
+    else
+        log "Superset is NOT running."
+    fi
+}
+
+status_all() {
+    status_postgres
+    status_redis
+    status_affine
+    status_metabase
+    status_superset
+}
+
+##############################################################################
 # MENU
 ##############################################################################
 
@@ -628,8 +680,7 @@ case "$1" in
             affine) start_affine ;;
             metabase) start_metabase ;;
             superset) start_superset ;;
-            super-productivity) start_super_productivity ;;
-            *) echo "Usage: $0 start {all|postgres|redis|affine|metabase|superset|super-productivity}" ;;
+            *) echo "Usage: $0 start {all|postgres|redis|affine|metabase|superset}" ;;
         esac
         ;;
     stop)
@@ -640,8 +691,7 @@ case "$1" in
             affine) stop_affine ;;
             metabase) stop_metabase ;;
             superset) stop_superset ;;
-            super-productivity) stop_super_productivity ;;
-            *) echo "Usage: $0 stop {all|postgres|redis|affine|metabase|superset|super-productivity}" ;;
+            *) echo "Usage: $0 stop {all|postgres|redis|affine|metabase|superset}" ;;
         esac
         ;;
     restart)
@@ -652,11 +702,26 @@ case "$1" in
             affine) restart_affine ;;
             metabase) restart_metabase ;;
             superset) restart_superset ;;
-            super-productivity) restart_super_productivity ;;
-            *) echo "Usage: $0 restart {all|postgres|redis|affine|metabase|superset|super-productivity}" ;;
+            *) echo "Usage: $0 restart {all|postgres|redis|affine|metabase|superset}" ;;
+        esac
+        ;;
+    # STATUS MENU
+    status)
+        case "$2" in
+            all)
+                status_all
+                ;;
+            postgres) status_postgres ;;
+            redis) status_redis ;;
+            affine) status_affine ;;
+            metabase) status_metabase ;;
+            superset) status_superset ;;
+            *)
+                echo "Usage: $0 status {all|postgres|redis|affine|metabase|superset}"
+                ;;
         esac
         ;;
     *)
-        echo "Usage: $0 {init|start|stop|restart} {service|all}"
+        echo "Usage: $0 {init|start|stop|restart|status} {service|all}"
         ;;
 esac
