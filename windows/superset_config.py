@@ -1,6 +1,7 @@
 import os
 import logging
 from flask_appbuilder.security.manager import AUTH_DB
+from cachelib import RedisCache
 
 SUPERSET_HOME = os.environ.get("SUPERSET_HOME", "/root/tools/superset")
 
