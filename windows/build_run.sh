@@ -6,7 +6,7 @@ CONTAINER_NAME="dev-environment"
 
 usage() {
   echo "Usage: $0 <POSTGRES_DATA_DIR> <POSTGRES_BACKUPS_DIR>"
-  echo "Example: $0 /home/user/pgdata /home/user/pgbackups"
+  echo "Example: $0 /home/fadzi/tools/dev-environment/postgres_data /home/fadzi/tools/dev-environment/postgres_backups"
   echo "Both arguments are required, and the specified directories must already exist."
   exit 1
 }
