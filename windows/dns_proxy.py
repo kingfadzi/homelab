@@ -1,30 +1,22 @@
 import socket
 import threading
-import requests
 from dnslib import DNSRecord
 
-# Get the corporate DNS server from Windows
-def get_windows_dns():
-    try:
-        response = requests.get("http://localhost:5050/dns")  # Change this if running another method
-        return response.text.strip()
-    except:
-        return "8.8.8.8"  # Fallback to Google DNS if needed
-
-DNS_SERVER = get_windows_dns()  # Use Windows' DNS server
+# 🔥 Hardcode your corporate DNS server here
+DNS_SERVER = "10.x.x.x"  # Replace with your actual corporate DNS server IP
 
 def handle_request(data, addr, sock):
     try:
-        # Parse the DNS request
+        # Parse the incoming DNS request
         request = DNSRecord.parse(data)
         query_name = str(request.q.qname)
 
-        # Forward request to the real DNS server
+        # Forward the request to the real corporate DNS server
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as dns_sock:
             dns_sock.sendto(data, (DNS_SERVER, 53))
             response_data, _ = dns_sock.recvfrom(512)
 
-        # Send response back to the requester (WSL)
+        # Send response back to WSL
         sock.sendto(response_data, addr)
         print(f"Resolved {query_name} via {DNS_SERVER}")
 
