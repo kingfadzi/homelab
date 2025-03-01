@@ -9,6 +9,16 @@ else
     USER_HOME="$HOME"
 fi
 
+# Default repave the installation to true.
+REPAVE_INSTALLATION=${REPAVE_INSTALLATION:-true}
+if [ "$REPAVE_INSTALLATION" = "true" ]; then
+    echo "[INFO] Repave flag detected (default=true). Stopping services and removing old installation files..."
+    systemctl stop postgresql-13 || true
+    systemctl stop redis || true
+    rm -rf "$USER_HOME/tools/superset" "$USER_HOME/tools/metabase" "$USER_HOME/tools/affinity-main"
+    rm -rf "/var/lib/pgsql/13/data"
+fi
+
 # Environment Configuration
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
