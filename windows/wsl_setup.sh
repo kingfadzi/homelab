@@ -125,12 +125,13 @@ psql_check() {
 restore_backup() {
     local db=$1
     local backup_file="${db}_backup.dump"
+    local backup_url="${MINIO_BASE_URL}/${backup_file}"
     local backup_path="/tmp/${backup_file}"
     
-    log "Downloading ${db} backup from Minio..."
-    if ! wget -q "${MINIO_BASE_URL}/${backup_file}" -O "$backup_path"; then
-        log "No backup found for ${db}, skipping restore"
-        return 0
+    log "Downloading ${db} backup from Minio: ${backup_url}"
+    if ! wget -q "${backup_url}" -O "$backup_path"; then
+        log "FATAL: No backup found for ${db} at URL: ${backup_url}. Aborting."
+        exit 1
     fi
 
     log "Restoring ${db} database..."
