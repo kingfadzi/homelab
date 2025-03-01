@@ -1,4 +1,6 @@
 #!/bin/bash
+set -euo pipefail
+trap 'echo "[ERROR] Script failed at line $LINENO" >&2; exit 1' ERR
 
 # Environment Configuration
 export LANG=en_US.UTF-8
@@ -21,101 +23,15 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
-# PostgreSQL Management Functions
-ensure_permissions() {
-    mkdir -p "$POSTGRES_DATA_DIR"
-    chown postgres:postgres "$POSTGRES_DATA_DIR"
-    chmod 700 "$POSTGRES_DATA_DIR"
-}
-
-psql_check() {
-    sudo -u postgres psql -c "SELECT 1;" &>/dev/null
-    return $?
-}
-
-restore_backup() {
-    local db=$1
-    local backup_file="${db}_backup.dump"
-    local backup_path="/tmp/${backup_file}"
-    
-    log "Downloading ${db} backup from Minio..."
-    if ! wget -q "${MINIO_BASE_URL}/${backup_file}" -O "$backup_path"; then
-        log "No backup found for ${db}, skipping restore"
-        return 0
-    fi
-
-    log "Restoring ${db} database..."
-    if ! sudo -u postgres "$PG_RESTORE_BIN" -d "$db" "$backup_path"; then
-        log "Error restoring ${db} database"
-        return 1
-    fi
-    rm -f "$backup_path"
-}
-
-init_postgres() {
-    ensure_permissions
-    if [ -f "$POSTGRES_DATA_DIR/PG_VERSION" ]; then
-        log "PostgreSQL already initialized"
-        return 0
-    fi
-
-    log "Initializing PostgreSQL cluster..."
-    sudo -u postgres "$INITDB_BIN" -D "$POSTGRES_DATA_DIR"
-
-    log "Configuring network access..."
-    sudo -u postgres sed -i "s/^#listen_addresses = 'localhost'/listen_addresses = '*'" "$POSTGRES_DATA_DIR/postgresql.conf"
-    echo "host all all 0.0.0.0/0 md5" | sudo -u postgres tee -a "$POSTGRES_DATA_DIR/pg_hba.conf" >/dev/null
-
-    log "Starting temporary PostgreSQL instance..."
-    sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" start -l "$POSTGRES_DATA_DIR/postgres_init.log"
-
-    local init_ok=false
-    for i in $(seq 1 $PG_MAX_WAIT); do
-        if psql_check; then
-            log "Securing PostgreSQL user..."
-            sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
-
-            log "Creating databases..."
-            for db in $PG_DATABASES; do
-                if ! sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '$db'" | grep -q 1; then
-                    sudo -u postgres psql -c "CREATE DATABASE $db WITH OWNER postgres;"
-                    log "Created database: $db"
-                fi
-                
-                if ! restore_backup "$db"; then
-                    return 1
-                fi
-            done
-
-            init_ok=true
-            break
-        fi
-        sleep 1
-    done
-
-    if [ "$init_ok" = false ]; then
-        log "FATAL: PostgreSQL initialization failed"
-        sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" stop &>/dev/null
-        return 1
-    fi
-
-    log "Stopping initialization instance..."
-    sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" stop
-    sleep 2
-}
-
-# Root Check
+# Check for root privileges
 if [ "$EUID" -ne 0 ]; then
-    log "This script must be run as root (use sudo)"
+    log "FATAL: This script must be run as root (use sudo)"
     exit 1
 fi
 
-# Main Installation Process
-log "Starting system provisioning..."
-
-# 1. Package Installation
+# Package Installation
 log "Installing system packages..."
-dnf -y install \
+if ! dnf -y install \
     epel-release \
     wget \
     git \
@@ -140,44 +56,185 @@ dnf -y install \
     redis \
     python3.11 \
     python3.11-devel \
-    nodejs
-
-# 2. PostgreSQL Setup
-log "Configuring PostgreSQL..."
-systemctl enable postgresql-13
-if ! init_postgres; then
+    nodejs; then
+    log "FATAL: Package installation failed. Aborting."
     exit 1
 fi
-systemctl start postgresql-13
 
-# 3. Redis Configuration
+# Verify postgres user exists (should be created by the PostgreSQL packages)
+if ! id -u postgres >/dev/null 2>&1; then
+    log "FATAL: postgres user does not exist. Aborting."
+    exit 1
+fi
+
+# PostgreSQL Management Functions
+ensure_permissions() {
+    mkdir -p "$POSTGRES_DATA_DIR"
+    if ! chown postgres:postgres "$POSTGRES_DATA_DIR"; then
+        log "FATAL: Failed to set ownership on $POSTGRES_DATA_DIR. Aborting."
+        exit 1
+    fi
+    chmod 700 "$POSTGRES_DATA_DIR"
+}
+
+psql_check() {
+    sudo -u postgres psql -c "SELECT 1;" &>/dev/null
+    return $?
+}
+
+restore_backup() {
+    local db=$1
+    local backup_file="${db}_backup.dump"
+    local backup_path="/tmp/${backup_file}"
+    
+    log "Downloading ${db} backup from Minio..."
+    if ! wget -q "${MINIO_BASE_URL}/${backup_file}" -O "$backup_path"; then
+        log "No backup found for ${db}, skipping restore"
+        return 0
+    fi
+
+    log "Restoring ${db} database..."
+    if ! sudo -u postgres "$PG_RESTORE_BIN" -d "$db" "$backup_path"; then
+        log "FATAL: Error restoring ${db} database. Aborting."
+        exit 1
+    fi
+    rm -f "$backup_path"
+}
+
+init_postgres() {
+    ensure_permissions
+    if [ -f "$POSTGRES_DATA_DIR/PG_VERSION" ]; then
+        log "PostgreSQL already initialized"
+        return 0
+    fi
+
+    log "Initializing PostgreSQL cluster..."
+    if ! sudo -u postgres "$INITDB_BIN" -D "$POSTGRES_DATA_DIR"; then
+        log "FATAL: Failed to initialize PostgreSQL cluster. Aborting."
+        exit 1
+    fi
+
+    log "Configuring network access..."
+    if ! sudo -u postgres sed -i "s/^#listen_addresses = 'localhost'/listen_addresses = '*'/" "$POSTGRES_DATA_DIR/postgresql.conf"; then
+        log "FATAL: Failed to configure postgresql.conf. Aborting."
+        exit 1
+    fi
+    echo "host all all 0.0.0.0/0 md5" | sudo -u postgres tee -a "$POSTGRES_DATA_DIR/pg_hba.conf" >/dev/null
+
+    log "Starting temporary PostgreSQL instance..."
+    if ! sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" start -l "$POSTGRES_DATA_DIR/postgres_init.log"; then
+        log "FATAL: Failed to start temporary PostgreSQL instance. Aborting."
+        exit 1
+    fi
+
+    local init_ok=false
+    for i in $(seq 1 $PG_MAX_WAIT); do
+        if psql_check; then
+            log "Securing PostgreSQL user..."
+            sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';"
+
+            log "Creating databases..."
+            for db in $PG_DATABASES; do
+                if ! sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '$db'" | grep -q 1; then
+                    sudo -u postgres psql -c "CREATE DATABASE $db WITH OWNER postgres;"
+                    log "Created database: $db"
+                fi
+                
+                restore_backup "$db"
+            done
+
+            init_ok=true
+            break
+        fi
+        sleep 1
+    done
+
+    if [ "$init_ok" = false ]; then
+        log "FATAL: PostgreSQL initialization failed. Aborting."
+        sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" stop &>/dev/null
+        exit 1
+    fi
+
+    log "Stopping initialization instance..."
+    sudo -u postgres "$PGCTL_BIN" -D "$POSTGRES_DATA_DIR" stop
+    sleep 2
+}
+
+# PostgreSQL Setup
+log "Configuring PostgreSQL..."
+if ! systemctl enable postgresql-13; then
+    log "FATAL: Could not enable PostgreSQL service. Aborting."
+    exit 1
+fi
+
+if ! init_postgres; then
+    log "FATAL: PostgreSQL initialization failed. Aborting."
+    exit 1
+fi
+
+if ! systemctl start postgresql-13; then
+    log "FATAL: Could not start PostgreSQL service. Aborting."
+    exit 1
+fi
+
+# Redis Configuration
 log "Setting up Redis..."
-sed -i "s/^# bind 127.0.0.1 ::1/bind 0.0.0.0/" /etc/redis.conf
-sed -i "s/^protected-mode yes/protected-mode no/" /etc/redis.conf
-systemctl enable redis
-systemctl start redis
+if ! sed -i "s/^# bind 127.0.0.1 ::1/bind 0.0.0.0/" /etc/redis.conf; then
+    log "FATAL: Failed to configure Redis binding. Aborting."
+    exit 1
+fi
+if ! sed -i "s/^protected-mode yes/protected-mode no/" /etc/redis.conf; then
+    log "FATAL: Failed to disable Redis protected mode. Aborting."
+    exit 1
+fi
+if ! systemctl enable redis; then
+    log "FATAL: Could not enable Redis service. Aborting."
+    exit 1
+fi
+if ! systemctl start redis; then
+    log "FATAL: Could not start Redis service. Aborting."
+    exit 1
+fi
 
-# 4. Node.js Environment
+# Node.js Environment Setup
 log "Configuring Node.js..."
-npm install -g yarn
+if ! npm install -g yarn; then
+    log "FATAL: Failed to install Yarn. Aborting."
+    exit 1
+fi
 
-# 5. Python Setup
+# Python Setup
 log "Setting up Python..."
-python3.11 -m ensurepip --upgrade
-python3.11 -m pip install --upgrade pip
-alternatives --set python3 /usr/bin/python3.11
+if ! python3.11 -m ensurepip --upgrade; then
+    log "FATAL: Failed to ensure Python pip. Aborting."
+    exit 1
+fi
+if ! python3.11 -m pip install --upgrade pip; then
+    log "FATAL: Failed to upgrade pip. Aborting."
+    exit 1
+fi
+if ! alternatives --set python3 /usr/bin/python3.11; then
+    log "FATAL: Failed to set default Python. Aborting."
+    exit 1
+fi
 ln -sf /usr/bin/pip3.11 /usr/bin/pip3
 
-# 6. Apache Superset Installation
+# Apache Superset Installation
 log "Installing Apache Superset..."
-pip3 install --upgrade setuptools wheel
-pip3 install "apache-superset[postgres]==4.1.0rc3"
+if ! pip3 install --upgrade setuptools wheel; then
+    log "FATAL: Failed to upgrade setuptools and wheel. Aborting."
+    exit 1
+fi
+if ! pip3 install "apache-superset[postgres]==4.1.0rc3"; then
+    log "FATAL: Failed to install Apache Superset. Aborting."
+    exit 1
+fi
 
-# 7. File Management
+# File Management: Creating application directories
 log "Creating application directories..."
 mkdir -p "$SUPERSET_HOME" "$METABASE_HOME" "$AFFINE_HOME"
 
-# 8. Configuration Downloads
+# Configuration Downloads
 log "Retrieving configurations from Minio..."
 declare -A config_files=(
     ["our-logs.conf"]="/etc/logrotate.d/our-logs"
@@ -191,23 +248,35 @@ declare -A config_files=(
 for file in "${!config_files[@]}"; do
     log "Downloading $file..."
     if ! wget -q "$MINIO_BASE_URL/$file" -O "${config_files[$file]}"; then
-        log "ERROR: Failed to download $file"
+        log "FATAL: Failed to download $file. Aborting."
         exit 1
     fi
 done
 
-# 9. Affine Setup
+# Affine Setup
 log "Deploying Affine..."
-tar -xzf "$AFFINE_HOME/affine.tar.gz" -C "$AFFINE_HOME" --strip-components=1
+if ! tar -xzf "$AFFINE_HOME/affine.tar.gz" -C "$AFFINE_HOME" --strip-components=1; then
+    log "FATAL: Failed to extract Affine package. Aborting."
+    exit 1
+fi
 rm -f "$AFFINE_HOME/affine.tar.gz"
-chown -R $SUDO_USER:$SUDO_USER "$AFFINE_HOME"
+if ! chown -R $SUDO_USER:$SUDO_USER "$AFFINE_HOME"; then
+    log "FATAL: Failed to set ownership for Affine. Aborting."
+    exit 1
+fi
 find "$AFFINE_HOME" -type d -exec chmod 755 {} \;
 find "$AFFINE_HOME" -type f -exec chmod 644 {} \;
 
-# 10. Maintenance Configuration
+# Maintenance Configuration
 log "Configuring maintenance jobs..."
-chmod +x /usr/local/bin/backup_postgres.sh
-chmod +x /usr/local/bin/services.sh
+if ! chmod +x /usr/local/bin/backup_postgres.sh; then
+    log "FATAL: Failed to make backup_postgres.sh executable. Aborting."
+    exit 1
+fi
+if ! chmod +x /usr/local/bin/services.sh; then
+    log "FATAL: Failed to make services.sh executable. Aborting."
+    exit 1
+fi
 mkdir -p /var/lib/logs /var/log/redis /mnt/pgdb_backups
 
 echo '0 2 * * * /usr/sbin/logrotate /etc/logrotate.conf' > /etc/cron.d/logrotate
