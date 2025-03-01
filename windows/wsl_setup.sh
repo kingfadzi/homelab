@@ -2,14 +2,22 @@
 set -euo pipefail
 trap 'echo "[ERROR] Script failed at line $LINENO" >&2; exit 1' ERR
 
+# Determine the real home directory to use for installations.
+# If run via sudo, use the invoking user's home; otherwise, use $HOME.
+if [ -n "${SUDO_USER:-}" ]; then
+    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+else
+    USER_HOME="$HOME"
+fi
+
 # Environment Configuration
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 export PYTHONUNBUFFERED=1
-export SUPERSET_HOME="$HOME/tools/superset"
+export SUPERSET_HOME="$USER_HOME/tools/superset"
 export SUPERSET_CONFIG_PATH="$SUPERSET_HOME/superset_config.py"
-export METABASE_HOME="$HOME/tools/metabase"
-export AFFINE_HOME="$HOME/tools/affinity-main"
+export METABASE_HOME="$USER_HOME/tools/metabase"
+export AFFINE_HOME="$USER_HOME/tools/affinity-main"
 export MINIO_BASE_URL="http://192.168.1.194:9000/blobs"
 export POSTGRES_DATA_DIR="/var/lib/pgsql/13/data"
 export INITDB_BIN="/usr/pgsql-13/bin/initdb"
