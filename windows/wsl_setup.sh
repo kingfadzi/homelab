@@ -29,7 +29,7 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# Package Installation
+# Package Installation (non-PostgreSQL packages)
 log "Installing system packages..."
 if ! dnf -y install \
     epel-release \
@@ -51,13 +51,33 @@ if ! dnf -y install \
     logrotate \
     sudo \
     iproute \
-    postgresql13-server \
-    postgresql13-contrib \
     redis \
     python3.11 \
     python3.11-devel \
     nodejs; then
     log "FATAL: Package installation failed. Aborting."
+    exit 1
+fi
+
+# PostgreSQL Installation via PGDG Repository
+log "Setting up PostgreSQL via PGDG repository..."
+if ! dnf -y install https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm; then
+    log "FATAL: Failed to install PGDG repository RPM. Aborting."
+    exit 1
+fi
+
+if ! dnf -qy module disable postgresql; then
+    log "FATAL: Failed to disable default PostgreSQL module. Aborting."
+    exit 1
+fi
+
+if ! dnf -y install postgresql13 postgresql13-server postgresql13-contrib; then
+    log "FATAL: PostgreSQL package installation failed. Aborting."
+    exit 1
+fi
+
+if ! dnf clean all; then
+    log "FATAL: dnf clean all failed. Aborting."
     exit 1
 fi
 
