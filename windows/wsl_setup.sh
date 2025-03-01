@@ -33,7 +33,7 @@ export INITDB_BIN="/usr/pgsql-13/bin/initdb"
 export PGCTL_BIN="/usr/pgsql-13/bin/pg_ctl"
 export PG_RESTORE_BIN="/usr/pgsql-13/bin/pg_restore"
 export PG_MAX_WAIT=30
-export PG_DATABASES=${PG_DATABASES:-"superset metabaseappdb affine"}
+export PG_DATABASES=${PG_DATABASES:-"superset metabase affine"}
 
 # Logging System
 log() {
