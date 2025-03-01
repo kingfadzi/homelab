@@ -3,7 +3,6 @@ set -euo pipefail
 trap 'echo "[ERROR] Script failed at line $LINENO" >&2; exit 1' ERR
 
 # Determine the real home directory to use for installations.
-# If run via sudo, use the invoking user's home; otherwise, use $HOME.
 if [ -n "${SUDO_USER:-}" ]; then
     USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
 else
@@ -207,6 +206,14 @@ if ! systemctl start postgresql-13; then
     log "FATAL: Could not start PostgreSQL service. Aborting."
     exit 1
 fi
+
+# Confirm PostgreSQL is listening on 0.0.0.0:5432
+log "Verifying PostgreSQL is listening on 0.0.0.0:5432..."
+if ! ss -tnlp | grep -q '0.0.0.0:5432'; then
+    log "FATAL: PostgreSQL is not listening on 0.0.0.0:5432. Aborting."
+    exit 1
+fi
+log "PostgreSQL is confirmed to be listening on 0.0.0.0:5432."
 
 # Redis Configuration
 log "Setting up Redis..."
