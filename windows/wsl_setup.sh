@@ -240,15 +240,14 @@ if ! alternatives --set python3 /usr/bin/python3.11; then
     log "FATAL: Failed to set default Python. Aborting."
     exit 1
 fi
-ln -sf /usr/bin/pip3.11 /usr/bin/pip3
 
 # Apache Superset Installation
 log "Installing Apache Superset..."
-if ! pip3 install --upgrade setuptools wheel; then
+if ! python3.11 -m pip install --upgrade setuptools wheel; then
     log "FATAL: Failed to upgrade setuptools and wheel. Aborting."
     exit 1
 fi
-if ! pip3 install "apache-superset[postgres]==4.1.0rc3"; then
+if ! python3.11 -m pip install "apache-superset[postgres]==4.1.0rc3"; then
     log "FATAL: Failed to install Apache Superset. Aborting."
     exit 1
 fi
