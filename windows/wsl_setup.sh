@@ -124,7 +124,7 @@ psql_check() {
 
 restore_backup() {
     local db=$1
-    local backup_file="${db}_backup.dump"
+    local backup_file="${db}.dump"
     local backup_url="${MINIO_BASE_URL}/${backup_file}"
     local backup_path="/tmp/${backup_file}"
     
