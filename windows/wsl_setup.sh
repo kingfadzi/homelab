@@ -29,6 +29,9 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# Change working directory to avoid permission issues for the postgres user.
+cd /tmp
+
 # Package Installation (non-PostgreSQL packages)
 log "Installing system packages..."
 if ! dnf -y install \
