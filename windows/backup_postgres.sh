@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Configuration
-BACKUP_DIR="/mnt/pgdb_backups"  # This is the mounted folder in the container
+BACKUP_DIR="./pgdb_backups"  # This is the mounted folder in the container
 DATE=$(date +%Y-%m-%d_%H-%M-%S)
 PG_USER="postgres"
-PG_HOST="127.0.0.1"
+PG_HOST="192.168.1.188"
 PG_PORT="5432"
 PG_DUMP="/usr/bin/pg_dump"
 KEEP_DAYS="7"          # How many days of backups to keep
