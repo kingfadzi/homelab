@@ -1,0 +1,17 @@
+- target_group_id: 80
+  projects:
+    - kingfadzi/AFFiNE
+    - kingfadzi/nolio
+    - kingfadzi/vault-secret-fetcher
+
+- target_group_id: 81
+  projects:
+    - kingfadzi/developer-platform
+    - kingfadzi/sonar-metrics
+    - kingfadzi/gitlabservice
+
+- target_group_id: 147
+  projects:
+    - kingfadzi/SpringJDBCTemplate
+    - kingfadzi/ldap-management-ui
+    - kingfadzi/ldap-management-api
