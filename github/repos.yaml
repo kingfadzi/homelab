@@ -1,0 +1,16 @@
+repos:
+  - owner: kingfadzi
+    name: lct_data
+    private: true
+
+  - owner: kingfadzi
+    name: lean_services
+    private: true
+
+  - owner: kingfadzi
+    name: scan_scheduler
+    private: true
+
+  - owner: kingfadzi
+    name: scan_fleet
+    private: true
