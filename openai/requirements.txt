@@ -1,0 +1,2 @@
+# Python HTTP client for API calls
+requests

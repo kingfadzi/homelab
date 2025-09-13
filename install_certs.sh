@@ -144,7 +144,7 @@ ok "SANs cover $HOSTNAME"
 
 info "Checking key ↔ cert match"
 HASH_CERT="$(openssl x509 -noout -modulus -in "$CRT_OUT" | openssl md5 | awk '{print $2}')"
-HASH_KEY="$(openssl pkey -noout -modulus -in "$KEY_OUT" | openssl md5 | awk '{print $2}')"
+HASH_KEY="$(openssl rsa -noout -modulus -in "$KEY_OUT" | openssl md5 | awk '{print $2}')"
 [[ "$HASH_CERT" == "$HASH_KEY" ]] || die "Key and certificate DO NOT match"
 ok "Key and cert match"
 
