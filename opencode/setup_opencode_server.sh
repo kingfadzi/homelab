@@ -1,5 +1,5 @@
 #!/bin/bash
-# OpenCode AI + Ollama server installation script for Ubuntu using absolute path
+# OpenCode AI + Ollama server installation script for Ubuntu using npm
 
 set -e
 
@@ -16,8 +16,24 @@ echo "Pulling Coding Models with Ollama..."
 ollama pull codellama
 ollama pull starcoder2
 
-echo "Installing OpenCode CLI server..."
-curl -fsSL https://opencode.ai/install | bash
+# Install nvm if not present
+if ! command -v nvm &> /dev/null; then
+  echo "Installing nvm (Node Version Manager)..."
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+else
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+fi
+
+# Install latest LTS Node.js and npm using nvm
+echo "Installing Node.js using nvm..."
+nvm install --lts
+nvm use --lts
+
+echo "Installing OpenCode CLI globally with npm..."
+npm install -g opencode-ai
 
 echo "Preparing OpenCode configuration..."
 mkdir -p ~/.config/opencode
@@ -33,10 +49,10 @@ providers:
     model: starcoder2
 EOF
 
-OPENCODE_PATH="$HOME/.local/bin/opencode"
-if [[ ! -x "$OPENCODE_PATH" ]]; then
-  echo "ERROR: OpenCode binary not found at $OPENCODE_PATH."
-  echo "Try installing globally with 'npm install -g opencode-ai' or check install logs."
+OPENCODE_PATH=$(command -v opencode || true)
+if [[ -z "$OPENCODE_PATH" ]]; then
+  echo "ERROR: OpenCode binary not found after npm install."
+  echo "Check npm logs or your PATH environment."
   exit 1
 fi
 
