@@ -1,0 +1,4 @@
+FROM llama3.1:8b
+PARAMETER num_ctx 4096
+PARAMETER num_batch 64
+PARAMETER temperature 0.2
