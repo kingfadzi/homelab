@@ -14,3 +14,95 @@ repos:
   - owner: kingfadzi
     name: scan_fleet
     private: true
+
+  - owner: kingfadzi
+    name: gateway
+    private: true
+
+  - owner: kingfadzi
+    name: cockpit
+    private: true
+
+  - owner: kingfadzi
+    name: navdocs
+    private: true
+
+  - owner: kingfadzi
+    name: oidc-pipeline
+    private: true
+
+  - owner: kingfadzi
+    name: oilon
+    private: true
+
+  - owner: kingfadzi
+    name: enterprise-sim
+    private: true
+
+  - owner: kingfadzi
+    name: compliance-lab
+    private: true
+
+  - owner: kingfadzi
+    name: evidence
+    private: true
+
+  - owner: kingfadzi
+    name: homelab
+    private: true
+
+  - owner: kingfadzi
+    name: hello-compliant-ns
+    private: true
+
+  - owner: kingfadzi
+    name: metadata
+    private: true
+
+  - owner: kingfadzi
+    name: audit-sink
+    private: true
+
+  - owner: kingfadzi
+    name: governance-ui
+    private: true
+
+  - owner: kingfadzi
+    name: policy-server
+    private: true
+
+  - owner: kingfadzi
+    name: control-plane
+    private: true
+
+  - owner: kingfadzi
+    name: control-packs
+    private: true
+
+  - owner: kingfadzi
+    name: auto_gov
+    private: true
+
+  - owner: kingfadzi
+    name: control-templates
+    private: true
+
+  - owner: kingfadzi
+    name: config-files
+    private: true
+
+  - owner: kingfadzi
+    name: cd-templates
+    private: true
+
+  - owner: kingfadzi
+    name: repo_sql_utils
+    private: true
+
+  - owner: kingfadzi
+    name: ontology
+    private: true
+
+  - owner: kingfadzi
+    name: pg13
+    private: true
