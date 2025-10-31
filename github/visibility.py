@@ -5,6 +5,7 @@ import yaml
 import requests
 import logging
 import time
+import subprocess
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
@@ -45,8 +46,19 @@ def set_visibility(owner, repo, private):
         logging.error(f"❌ Failed to update {owner}/{repo}: {response.status_code}")
         logging.debug(response.json())
 
+def git_pull(directory):
+    logging.info(f"Running git pull in {directory}")
+    result = subprocess.run(["git", "pull"], cwd=directory, capture_output=True, text=True)
+    if result.returncode == 0:
+        logging.info("✔ Git pull successful.")
+        logging.info(result.stdout)
+    else:
+        logging.error("❌ Git pull failed.")
+        logging.error(result.stderr)
+
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    git_pull(script_dir)
     repos_file = os.path.join(script_dir, "repos.yaml")
     repos = load_repos(repos_file)
     for r in repos:
