@@ -10,14 +10,14 @@ import time
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s: %(message)s")
 
 # Read GitHub token from environment variable
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-if not GITHUB_TOKEN:
-    logging.error("❌ GITHUB_TOKEN environment variable not set.")
+GITHUB_API_TOKEN = os.getenv("GITHUB_API_TOKEN")
+if not GITHUB_API_TOKEN:
+    logging.error("❌ GITHUB_API_TOKEN environment variable not set.")
     exit(1)
 
 # GitHub API headers
 HEADERS = {
-    "Authorization": f"token {GITHUB_TOKEN}",
+    "Authorization": f"token {GITHUB_API_TOKEN}",
     "Accept": "application/vnd.github+json"
 }
 
