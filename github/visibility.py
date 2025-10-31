@@ -46,7 +46,9 @@ def set_visibility(owner, repo, private):
         logging.debug(response.json())
 
 def main():
-    repos = load_repos("repos.yaml")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    repos_file = os.path.join(script_dir, "repos.yaml")
+    repos = load_repos(repos_file)
     for r in repos:
         set_visibility(r["owner"], r["name"], r["private"])
 
