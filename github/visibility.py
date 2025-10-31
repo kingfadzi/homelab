@@ -47,14 +47,26 @@ def set_visibility(owner, repo, private):
         logging.debug(response.json())
 
 def git_pull(directory):
-    logging.info(f"Running git pull in {directory}")
-    result = subprocess.run(["git", "pull"], cwd=directory, capture_output=True, text=True)
-    if result.returncode == 0:
-        logging.info("✔ Git pull successful.")
-        logging.info(result.stdout)
-    else:
-        logging.error("❌ Git pull failed.")
-        logging.error(result.stderr)
+    logging.info(f"Updating repository in {directory}")
+    try:
+        # Fetch the latest changes from the remote
+        subprocess.run(["git", "fetch", "origin"], cwd=directory, capture_output=True, text=True, check=True)
+        logging.info("✔ Git fetch successful.")
+
+        # Get the current branch name
+        branch_result = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=directory, capture_output=True, text=True, check=True)
+        current_branch = branch_result.stdout.strip()
+
+        # Reset the local branch to match the remote, discarding local changes
+        reset_result = subprocess.run(["git", "reset", "--hard", f"origin/{current_branch}"], cwd=directory, capture_output=True, text=True, check=True)
+        logging.info(f"✔ Git reset to origin/{current_branch} successful.")
+        if reset_result.stdout:
+            logging.info(reset_result.stdout)
+
+    except subprocess.CalledProcessError as e:
+        logging.error("❌ Failed to update git repository.")
+        logging.error(f"Command: '{' '.join(e.cmd)}'")
+        logging.error(f"Stderr: {e.stderr}")
 
 def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
