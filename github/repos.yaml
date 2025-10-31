@@ -32,39 +32,7 @@ repos:
     private: true
 
   - owner: kingfadzi
-    name: oilon
-    private: true
-
-  - owner: kingfadzi
-    name: enterprise-sim
-    private: true
-
-  - owner: kingfadzi
-    name: compliance-lab
-    private: true
-
-  - owner: kingfadzi
     name: evidence
-    private: true
-
-  - owner: kingfadzi
-    name: homelab
-    private: true
-
-  - owner: kingfadzi
-    name: hello-compliant-ns
-    private: true
-
-  - owner: kingfadzi
-    name: metadata
-    private: true
-
-  - owner: kingfadzi
-    name: audit-sink
-    private: true
-
-  - owner: kingfadzi
-    name: governance-ui
     private: true
 
   - owner: kingfadzi
@@ -84,10 +52,6 @@ repos:
     private: true
 
   - owner: kingfadzi
-    name: control-templates
-    private: true
-
-  - owner: kingfadzi
     name: config-files
     private: true
 
@@ -97,10 +61,6 @@ repos:
 
   - owner: kingfadzi
     name: repo_sql_utils
-    private: true
-
-  - owner: kingfadzi
-    name: ontology
     private: true
 
   - owner: kingfadzi
