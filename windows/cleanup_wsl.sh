@@ -3,28 +3,33 @@ set -eo pipefail
 
 # RHEL WSL Cleanup Script (No wsl.exe Commands)
 # Purpose: Clean a RHEL-based WSL instance to reclaim space before exporting it.
-# Warning: This operation is irreversible:
-#  - All hidden directories in your home (dot-folders except . and ..) will be deleted.
+# This operation removes caches and temporary files while preserving settings:
+#  - User cache directories (.cache, .npm, .m2, etc.) will be deleted.
 #  - System caches, logs, and temporary files will be removed.
+#  - Journal logs will be limited to 50MB.
 #  - PostgreSQL databases will be vacuumed to reclaim space.
 #  - Docker resources (images, containers, etc.) will be pruned.
+#  - User configs and SSH keys are preserved.
 #
 # Usage: ./wsl_cleanup.sh
 
-# Remove all hidden directories from the user's home directory (excluding . and ..)
-echo "Removing all hidden directories from $HOME (except . and ..)..."
-find "$HOME" -maxdepth 1 -type d -name ".*" ! -name "." ! -name ".." -exec rm -rf {} +
+# Clean only cache directories, preserve configs and settings
+echo "Cleaning cache directories from $HOME..."
+rm -rf "$HOME/.cache" "$HOME/.npm" "$HOME/.m2" "$HOME/.gradle" \
+       "$HOME/.ivy2" "$HOME/.nuget" "$HOME/.local/share/Trash" 2>/dev/null || true
 
 # System cleanup for RHEL
 echo "Starting system cleanup..."
-sudo dnf update -y
-sudo dnf upgrade --refresh -y
 sudo dnf autoremove -y
 sudo dnf clean all
+sudo dnf clean packages
+sudo dnf clean metadata
+sudo dnf clean dbcache
 sudo rm -rf /var/cache/dnf/*
 sudo rm -rf /tmp/* /var/tmp/*
-sudo rm -rf /var/log/*.log /var/log/dnf /var/log/journal/*
-rm -rf ~/.cache/* ~/.npm/* ~/.m2/* ~/.gradle/* ~/.ivy2/* ~/.nuget/*
+# Limit journal logs to 50MB instead of deleting all
+sudo journalctl --vacuum-size=50M 2>/dev/null || true
+sudo rm -rf /var/log/*.log /var/log/dnf
 
 # PostgreSQL vacuum
 echo "Vacuuming PostgreSQL databases..."
