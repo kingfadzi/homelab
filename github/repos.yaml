@@ -66,3 +66,7 @@ repos:
   - owner: kingfadzi
     name: pg13
     private: true
+
+  - owner: kingfadzi
+    name: migration
+    private: true
