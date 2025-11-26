@@ -70,3 +70,11 @@ repos:
   - owner: kingfadzi
     name: migration
     private: true
+
+  - owner: kingfadzi
+    name: lean-web
+    private: true
+
+  - owner: kingfadzi
+    name: lean-docs
+    private: true
