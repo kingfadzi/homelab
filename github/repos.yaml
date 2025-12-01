@@ -78,3 +78,7 @@ repos:
   - owner: kingfadzi
     name: lean-docs
     private: true
+
+  - owner: kingfadzi
+    name: lean-migration
+    private: true
