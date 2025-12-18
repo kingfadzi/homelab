@@ -82,3 +82,7 @@ repos:
   - owner: kingfadzi
     name: lean-migration
     private: true
+
+  - owner: kingfadzi
+    name: risk-service
+    private: true
