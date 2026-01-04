@@ -1,0 +1,2 @@
+ansible_user: "{{ vault_vm_ssh_user }}"
+ansible_password: "{{ vault_vm_ssh_password }}"
