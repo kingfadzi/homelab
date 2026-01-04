@@ -1,0 +1,4 @@
+vault_netdata_claim_token: "PASTE_TOKEN"
+vault_vcenter_user: "netdata@vsphere.local"
+vault_vcenter_pass: "PASTE_PASSWORD"
+vault_snmp_community: "public"

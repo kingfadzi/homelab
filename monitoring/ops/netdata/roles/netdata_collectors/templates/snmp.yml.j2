@@ -1,0 +1,13 @@
+include:
+  - /etc/netdata/go.d/snmp_profiles.yml
+
+jobs:
+{% for device in snmp_devices %}
+  - name: {{ device.name }}
+    ip: {{ device.ip }}
+    community: {{ device.community }}
+    profile: {{ device.profile }}
+{% if device.if_allow_regex is defined %}
+    if_allow_regex: "{{ device.if_allow_regex }}"
+{% endif %}
+{% endfor %}

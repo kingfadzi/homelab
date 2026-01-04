@@ -1,0 +1,23 @@
+all:
+  vars:
+    homelab_site: "home"
+    homelab_env: "lab"
+  children:
+    collectors:
+      hosts:
+        collector01:
+          ansible_host: 192.168.1.10
+          netdata_labels:
+            role: "collector"
+            vendor: "ubuntu"
+            site: "home"
+            env: "lab"
+    linux_nodes:
+      hosts:
+        vm01:
+          ansible_host: 192.168.1.20
+          netdata_labels:
+            role: "vm"
+            vendor: "linux"
+            site: "home"
+            env: "lab"

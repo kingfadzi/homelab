@@ -1,0 +1,18 @@
+vcenter_host: "vc.lab.local"
+vcenter_user: "{{ vault_vcenter_user }}"
+vcenter_pass: "{{ vault_vcenter_pass }}"
+
+snmp_devices:
+  - name: qnap01
+    ip: 192.168.1.30
+    community: "{{ vault_snmp_community }}"
+    profile: qnap
+    if_allow_regex: "^(eth0|bond0|vlan\\d+)$"
+
+  - name: usg
+    ip: 192.168.1.2
+    community: "{{ vault_snmp_community }}"
+    profile: ubiquiti
+
+collector_enable_ufw: false
+collector_allow_lan_cidr: "192.168.1.0/24"

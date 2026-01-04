@@ -1,0 +1,54 @@
+- name: Check for existing Netdata binary
+  ansible.builtin.stat:
+    path: /usr/sbin/netdata
+  register: netdata_sbin
+
+- name: Check for existing Netdata binary in /usr/bin
+  ansible.builtin.stat:
+    path: /usr/bin/netdata
+  register: netdata_bin
+
+- name: Set Netdata installed flag
+  ansible.builtin.set_fact:
+    netdata_installed: "{{ netdata_sbin.stat.exists or netdata_bin.stat.exists }}"
+
+- name: Install Netdata via kickstart
+  ansible.builtin.shell: "curl -sSL {{ netdata_kickstart_url }} | sh -s -- --dont-wait"
+  args:
+    creates: /usr/sbin/netdata
+  when: not netdata_installed
+
+- name: Ensure Netdata service enabled and running
+  ansible.builtin.systemd:
+    name: netdata
+    enabled: true
+    state: started
+
+- name: Write Netdata Cloud labels
+  ansible.builtin.template:
+    src: cloud.conf.j2
+    dest: /etc/netdata/cloud.conf
+    owner: root
+    group: root
+    mode: "0640"
+  notify: restart netdata
+
+- name: Check if node is already claimed
+  ansible.builtin.stat:
+    path: /var/lib/netdata/cloud.d/claimed_id
+  register: netdata_claimed
+
+- name: Claim node into Netdata Cloud
+  ansible.builtin.command:
+    cmd: >-
+      /usr/sbin/netdata-claim.sh
+      -token {{ netdata_claim_token }}
+      -rooms {{ netdata_claim_rooms }}
+      -url {{ netdata_claim_url }}
+  args:
+    creates: /var/lib/netdata/cloud.d/claimed_id
+  when:
+    - not netdata_claimed.stat.exists
+    - netdata_claim_enabled | bool
+    - netdata_claim_token | length > 0
+  no_log: true

@@ -1,0 +1,13 @@
+netdata_kickstart_url: https://get.netdata.cloud/kickstart.sh
+
+# SAFETY DEFAULT: no agents on VMs
+netdata_allow_vm_agents: false
+
+netdata_claim_enabled: true
+netdata_claim_token: "{{ vault_netdata_claim_token | default('') }}"
+netdata_claim_rooms: "Homelab"
+netdata_claim_url: "https://app.netdata.cloud"
+
+netdata_default_labels:
+  site: "{{ homelab_site }}"
+  env: "{{ homelab_env }}"

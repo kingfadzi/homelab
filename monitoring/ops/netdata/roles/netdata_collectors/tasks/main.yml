@@ -1,0 +1,36 @@
+- name: Ensure Netdata go.d directory exists
+  ansible.builtin.file:
+    path: /etc/netdata/go.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Write vCenter collector configuration
+  ansible.builtin.template:
+    src: vcenter.conf.j2
+    dest: /etc/netdata/go.d/vcenter.conf
+    owner: root
+    group: root
+    mode: "0640"
+  no_log: true
+  notify: restart netdata
+
+- name: Write SNMP profiles
+  ansible.builtin.template:
+    src: snmp_profiles.yml.j2
+    dest: /etc/netdata/go.d/snmp_profiles.yml
+    owner: root
+    group: root
+    mode: "0640"
+  notify: restart netdata
+
+- name: Write SNMP devices
+  ansible.builtin.template:
+    src: snmp.yml.j2
+    dest: /etc/netdata/go.d/snmp.yml
+    owner: root
+    group: root
+    mode: "0640"
+  no_log: true
+  notify: restart netdata

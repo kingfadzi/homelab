@@ -1,0 +1,8 @@
+[global]
+enabled = yes
+{%- set labels = netdata_default_labels | combine(netdata_labels | default({})) -%}
+{%- set pairs = [] -%}
+{%- for item in labels | dictsort -%}
+{%- set _ = pairs.append(item[0] ~ '=' ~ item[1]) -%}
+{%- endfor -%}
+labels = {{ pairs | join(',') }}
