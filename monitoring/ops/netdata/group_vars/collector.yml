@@ -3,14 +3,14 @@ vcenter_user: "{{ vault_vcenter_user }}"
 vcenter_pass: "{{ vault_vcenter_pass }}"
 
 snmp_devices:
-  - name: qnap01
+  - name: nas
     ip: 192.168.1.79
     community: "{{ vault_snmp_community }}"
     profile: qnap
     if_allow_regex: "^(eth0|bond0|vlan\\d+)$"
 
-  - name: qnap02
-    ip: 192.168.1.200
+  - name: aquarius
+    ip: 192.168.1.182
     community: "{{ vault_snmp_community }}"
     profile: qnap
     if_allow_regex: "^(eth0|bond0|vlan\\d+)$"
@@ -34,6 +34,11 @@ snmp_devices:
     ip: 192.168.1.172
     community: "{{ vault_snmp_community }}"
     profile: supermicro
+
+  - name: lyra
+    ip: 192.168.1.253
+    community: "{{ vault_snmp_community }}"
+    profile: opnsense
 
 collector_enable_ufw: false
 collector_allow_lan_cidr: "192.168.1.0/24"
