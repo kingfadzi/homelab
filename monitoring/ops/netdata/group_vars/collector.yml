@@ -25,13 +25,13 @@ snmp_devices:
     community: "{{ vault_snmp_community }}"
     profile: ubiquiti-switch
 
-  - name: supermicro01
-    ip: 192.168.1.171
+  - name: antares1
+    ip: 192.168.1.170
     community: "{{ vault_snmp_community }}"
     profile: supermicro
 
-  - name: supermicro02
-    ip: 192.168.1.172
+  - name: antares2
+    ip: 192.168.1.171
     community: "{{ vault_snmp_community }}"
     profile: supermicro
 
