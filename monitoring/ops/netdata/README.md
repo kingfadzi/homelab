@@ -11,6 +11,41 @@ This bundle provisions Netdata collectors on Ubuntu 22 and configures vCenter + 
   - Ubiquiti
 - vCenter read-only account
 
+## Infra setup (Mac control node + Ubuntu 22 collector)
+
+You run Ansible from your Mac (control node). The collector VM(s) must be Ubuntu 22 and reachable via SSH.
+
+### Install Ansible (macOS)
+
+```bash
+brew install ansible
+```
+
+### Install VMware inventory dependencies (macOS)
+
+```bash
+ansible-galaxy collection install community.vmware
+python3 -m pip install --user pyvmomi
+```
+
+### SSH access
+
+Use SSH keys from your Mac to the collector and any Linux nodes you manage with agents:
+
+```bash
+ssh-keygen -t ed25519 -C "netdata-ansible"
+ssh-copy-id fadzi@COLLECTOR_IP
+```
+
+### Vault file
+
+Create a real vault file from the example:
+
+```bash
+cp ops/netdata/group_vars/all.vault.yml.example ops/netdata/group_vars/all.vault.yml
+ansible-vault encrypt ops/netdata/group_vars/all.vault.yml
+```
+
 ## How to run
 
 ```bash
