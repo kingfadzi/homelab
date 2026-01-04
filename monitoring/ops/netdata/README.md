@@ -11,6 +11,13 @@ This bundle provisions Netdata collectors on Ubuntu 22 and configures vCenter + 
   - Ubiquiti
 - vCenter read-only account
 
+## SNMP setup checklist (high level)
+
+- QNAP: Control Panel → Network & File Services → SNMP → enable v2c, set community, allow collector IP
+- UniFi USG/USW: UniFi Controller → Settings → Services → SNMP → enable v2c, set community, allow collector IP
+- Supermicro IPMI: IPMI web UI → Configuration → SNMP → enable v2c, set community, restrict to collector IP
+- OPNsense: Services → SNMP → enable v2c, set community, allow collector IP
+
 ## Infra setup (Mac control node + Ubuntu 22 collector)
 
 You run Ansible from your Mac (control node). The collector VM(s) must be Ubuntu 22 and reachable via SSH.
